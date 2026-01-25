@@ -1,57 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { useLicense } from '../contexts/LicenseContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageToggle from './LanguageToggle'
 
-// Default script URL
-const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzt3VD3jLMCsqT-MY6eyQs9XymrNP8r5Slh1E0rYufrZnHGhB-m_62lNxO8CxhbLBf1xw/exec'
-
 export default function LicenseActivation() {
   const { license, isActivated, activateLicense, deactivateLicense } = useLicense()
   const toast = useToastContext()
   const { t } = useLanguage()
   const [licenseKey, setLicenseKey] = useState('')
-  const [scriptUrl, setScriptUrl] = useState(DEFAULT_SCRIPT_URL)
   const [isActivating, setIsActivating] = useState(false)
   const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
-  // Always use the default script URL (don't load from localStorage to avoid stale URLs)
-  // Clear any old saved URL from localStorage
-  useEffect(() => {
-    const savedUrl = localStorage.getItem('licenseScriptUrl')
-    // If there's a saved URL and it's an old one, clear it
-    if (savedUrl && (
-      savedUrl.includes('AKfycbz0AIvNx_buARwVUgAg9TXxNN5DpbnsTGiOlxttknctMn6ZXM0m8xWYVkt4nbKN8mN98A') ||
-      savedUrl.includes('AKfycbwXU5en4sUhN-PLzPBF4d9v2pMkEEVlF09DWhm6adkRleX_YIDzuwN2I6XCONhnYZ_hlw')
-    )) {
-      localStorage.removeItem('licenseScriptUrl')
-    }
-    // Always use the current default URL
-    setScriptUrl(DEFAULT_SCRIPT_URL)
-  }, [])
-
   const handleActivate = async () => {
-    console.log('[LicenseActivation] Activate button clicked')
     setErrorDetails(null)
-
     if (!licenseKey.trim()) {
-      console.log('[LicenseActivation] License key is empty')
       toast.error(t.license.enterLicenseKey)
       return
     }
-
-    console.log('[LicenseActivation] Starting activation for key:', licenseKey.trim())
     setIsActivating(true)
-
     try {
-      // Save script URL
-      localStorage.setItem('licenseScriptUrl', scriptUrl)
-
-      console.log('[LicenseActivation] Calling activateLicense with:', { key: licenseKey.trim(), scriptUrl })
-      const result = await activateLicense(licenseKey.trim(), scriptUrl)
-      console.log('[LicenseActivation] Activation result:', result)
+      const result = await activateLicense(licenseKey.trim())
 
       if (result.success) {
         toast.success(result.message)

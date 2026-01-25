@@ -44,7 +44,7 @@ export const id = {
   },
   // App
   app: {
-    title: 'Satria POS',
+    title: 'Cuslabs POS',
     logout: 'Keluar',
     exit: 'Keluar Aplikasi',
     version: 'Versi 1.0.0',

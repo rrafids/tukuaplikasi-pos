@@ -126,7 +126,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
 
             <div className="mt-4 text-center print:mt-2">
               <p className="text-xs text-slate-500 print:text-[8pt]">
-                Satria POS
+                Cuslabs POS
               </p>
             </div>
           </div>

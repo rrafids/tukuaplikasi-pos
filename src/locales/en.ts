@@ -44,7 +44,7 @@ export const en = {
   },
   // App
   app: {
-    title: 'Satria POS',
+    title: 'Cuslabs POS',
     logout: 'Logout',
     exit: 'Exit',
     version: 'Version 1.0.0',

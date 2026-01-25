@@ -134,7 +134,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             {/* Company Header */}
             <div className="mb-4 text-center print:mb-2">
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
-                Satria POS
+                Cuslabs POS
               </h1>
               <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">By Cuslabs</p>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
