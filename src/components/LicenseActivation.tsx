@@ -1,0 +1,207 @@
+import { useState, useEffect } from 'react'
+import { KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { useLicense } from '../contexts/LicenseContext'
+import { useToastContext } from '../contexts/ToastContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import LanguageToggle from './LanguageToggle'
+
+// Default script URL
+const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzt3VD3jLMCsqT-MY6eyQs9XymrNP8r5Slh1E0rYufrZnHGhB-m_62lNxO8CxhbLBf1xw/exec'
+
+export default function LicenseActivation() {
+  const { license, isActivated, activateLicense, deactivateLicense } = useLicense()
+  const toast = useToastContext()
+  const { t } = useLanguage()
+  const [licenseKey, setLicenseKey] = useState('')
+  const [scriptUrl, setScriptUrl] = useState(DEFAULT_SCRIPT_URL)
+  const [isActivating, setIsActivating] = useState(false)
+  const [errorDetails, setErrorDetails] = useState<string | null>(null)
+
+  // Always use the default script URL (don't load from localStorage to avoid stale URLs)
+  // Clear any old saved URL from localStorage
+  useEffect(() => {
+    const savedUrl = localStorage.getItem('licenseScriptUrl')
+    // If there's a saved URL and it's an old one, clear it
+    if (savedUrl && (
+      savedUrl.includes('AKfycbz0AIvNx_buARwVUgAg9TXxNN5DpbnsTGiOlxttknctMn6ZXM0m8xWYVkt4nbKN8mN98A') ||
+      savedUrl.includes('AKfycbwXU5en4sUhN-PLzPBF4d9v2pMkEEVlF09DWhm6adkRleX_YIDzuwN2I6XCONhnYZ_hlw')
+    )) {
+      localStorage.removeItem('licenseScriptUrl')
+    }
+    // Always use the current default URL
+    setScriptUrl(DEFAULT_SCRIPT_URL)
+  }, [])
+
+  const handleActivate = async () => {
+    console.log('[LicenseActivation] Activate button clicked')
+    setErrorDetails(null)
+
+    if (!licenseKey.trim()) {
+      console.log('[LicenseActivation] License key is empty')
+      toast.error(t.license.enterLicenseKey)
+      return
+    }
+
+    console.log('[LicenseActivation] Starting activation for key:', licenseKey.trim())
+    setIsActivating(true)
+
+    try {
+      // Save script URL
+      localStorage.setItem('licenseScriptUrl', scriptUrl)
+
+      console.log('[LicenseActivation] Calling activateLicense with:', { key: licenseKey.trim(), scriptUrl })
+      const result = await activateLicense(licenseKey.trim(), scriptUrl)
+      console.log('[LicenseActivation] Activation result:', result)
+
+      if (result.success) {
+        toast.success(result.message)
+        setLicenseKey('')
+        setErrorDetails(null)
+      } else {
+        const errorMsg = result.message || 'Unknown error occurred'
+        toast.error(errorMsg)
+        setErrorDetails(`Error: ${errorMsg}`)
+      }
+    } catch (error) {
+      console.error('[LicenseActivation] Error during activation:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to activate license'
+      toast.error(errorMessage)
+      setErrorDetails(`Exception: ${errorMessage}`)
+    } finally {
+      setIsActivating(false)
+    }
+  }
+
+  const handleDeactivate = async () => {
+    if (confirm(t.license.deactivateConfirm)) {
+      await deactivateLicense()
+      toast.success(t.license.deactivated)
+    }
+  }
+
+  if (isActivated && license) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+        <div className="absolute top-4 right-4">
+          <LanguageToggle />
+        </div>
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <div className="flex items-center justify-center">
+            <CheckCircleIcon className="h-16 w-16 text-green-500" />
+          </div>
+          <h2 className="mt-4 text-center text-2xl font-bold text-slate-900">
+            {t.license.activated}
+          </h2>
+          <div className="mt-6 space-y-3">
+            <div>
+              <label className="text-sm font-medium text-slate-600">{t.license.licenseKey}</label>
+              <p className="mt-1 font-mono text-sm text-slate-900">{license.license_key}</p>
+            </div>
+            {license.activated_at && (
+              <div>
+                <label className="text-sm font-medium text-slate-600">{t.license.activatedAt}</label>
+                <p className="mt-1 text-sm text-slate-900">
+                  {new Date(license.activated_at).toLocaleString()}
+                </p>
+              </div>
+            )}
+            {license.expires_at && (
+              <div>
+                <label className="text-sm font-medium text-slate-600">{t.license.expiresAt}</label>
+                <p className="mt-1 text-sm text-slate-900">
+                  {new Date(license.expires_at).toLocaleString()}
+                </p>
+              </div>
+            )}
+            <div>
+              <label className="text-sm font-medium text-slate-600">{t.common.status}</label>
+              <p className="mt-1">
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                  {license.status.toUpperCase()}
+                </span>
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleDeactivate}
+            className="mt-6 w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+          >
+            {t.license.deactivate}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <div className="absolute top-4 right-4">
+        <LanguageToggle />
+      </div>
+      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+        <div className="flex items-center justify-center">
+          <KeyIcon className="h-16 w-16 text-slate-400" />
+        </div>
+        <h2 className="mt-4 text-center text-2xl font-bold text-slate-900">
+          {t.license.activate}
+        </h2>
+        <p className="mt-2 text-center text-sm text-slate-600">
+          {t.license.enterLicenseKey}
+        </p>
+
+        <div className="mt-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700">
+              {t.license.licenseKey}
+            </label>
+            <input
+              type="text"
+              value={licenseKey}
+              onChange={(e) => setLicenseKey(e.target.value)}
+              placeholder={t.license.enterLicenseKey}
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleActivate()
+                }
+              }}
+            />
+          </div>
+
+          {errorDetails && (
+            <div className="rounded-md bg-red-50 border border-red-200 p-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h4 className="text-sm font-medium text-red-800 mb-2">Error Details</h4>
+                  <pre className="text-xs text-red-700 whitespace-pre-wrap break-words font-mono">
+                    {errorDetails}
+                  </pre>
+                </div>
+                <button
+                  onClick={() => setErrorDetails(null)}
+                  className="ml-2 text-red-600 hover:text-red-800"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            handleActivate()
+          }}
+          disabled={isActivating}
+          className="mt-6 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+        >
+          {isActivating ? t.license.activating : t.license.activate}
+        </button>
+      </div>
+    </div>
+  )
+}
+
