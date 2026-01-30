@@ -599,7 +599,7 @@ export default function ProductLocationStocks() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>New Stock Entry</span>
@@ -628,7 +628,7 @@ export default function ProductLocationStocks() {
                   )}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
                 <span className="text-lg">📦</span>
               </div>
             </div>
@@ -654,7 +654,7 @@ export default function ProductLocationStocks() {
                   placeholder="Search by product, location, or stock..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 {searchQuery && (
                   <button
@@ -674,7 +674,7 @@ export default function ProductLocationStocks() {
                       e.target.value ? parseInt(e.target.value, 10) : null,
                     )
                   }
-                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">All Products</option>
                   {products.map((product) => (
@@ -693,7 +693,7 @@ export default function ProductLocationStocks() {
                       e.target.value ? parseInt(e.target.value, 10) : null,
                     )
                   }
-                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">All Locations</option>
                   {locations.map((location) => (
@@ -712,7 +712,7 @@ export default function ProductLocationStocks() {
                       e.target.value ? parseInt(e.target.value, 10) : null,
                     )
                   }
-                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="">{t.locationStocks.allUOMs}</option>
                   {uoms.map((uom) => (
@@ -768,7 +768,7 @@ export default function ProductLocationStocks() {
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
                             stock.location_type === 'warehouse'
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-primary-100 text-primary-700'
                               : 'bg-purple-100 text-purple-700'
                           }`}
                         >
@@ -882,7 +882,7 @@ export default function ProductLocationStocks() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -919,7 +919,7 @@ export default function ProductLocationStocks() {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                             currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -991,7 +991,7 @@ export default function ProductLocationStocks() {
                 <div className="space-y-1 text-xs text-slate-600">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Product ID:</span>
-                    <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">
+                    <span className="rounded bg-primary-100 px-2 py-0.5 text-primary-700">
                       {t.locationStocks.required}
                     </span>
                     <span className="text-slate-500">
@@ -1000,7 +1000,7 @@ export default function ProductLocationStocks() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Location ID:</span>
-                    <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">
+                    <span className="rounded bg-primary-100 px-2 py-0.5 text-primary-700">
                       {t.locationStocks.required}
                     </span>
                     <span className="text-slate-500">
@@ -1009,7 +1009,7 @@ export default function ProductLocationStocks() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">Stock:</span>
-                    <span className="rounded bg-indigo-100 px-2 py-0.5 text-indigo-700">
+                    <span className="rounded bg-primary-100 px-2 py-0.5 text-primary-700">
                       {t.locationStocks.required}
                     </span>
                     <span className="text-slate-500">
@@ -1021,24 +1021,24 @@ export default function ProductLocationStocks() {
 
               {/* Progress */}
               {bulkUploadProgress && (
-                <div className="rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                <div className="rounded-lg border border-primary-200 bg-primary-50 p-4">
                   <div className="mb-2 flex items-center justify-between text-xs">
-                    <span className="font-medium text-indigo-900">
+                    <span className="font-medium text-primary-900">
                       {t.locationStocks.uploadingProgress}
                     </span>
-                    <span className="text-indigo-700">
+                    <span className="text-primary-700">
                       {bulkUploadProgress.processed} / {bulkUploadProgress.total}
                     </span>
                   </div>
-                  <div className="mb-2 h-2 overflow-hidden rounded-full bg-indigo-200">
+                  <div className="mb-2 h-2 overflow-hidden rounded-full bg-primary-200">
                     <div
-                      className="h-full bg-indigo-600 transition-all duration-300"
+                      className="h-full bg-primary-600 transition-all duration-300"
                       style={{
                         width: `${(bulkUploadProgress.processed / bulkUploadProgress.total) * 100}%`,
                       }}
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs text-indigo-700">
+                  <div className="flex items-center justify-between text-xs text-primary-700">
                     <span>
                       {t.locationStocks.success}: {bulkUploadProgress.success}
                     </span>
@@ -1059,7 +1059,7 @@ export default function ProductLocationStocks() {
                   <ArrowDownTrayIcon className="h-4 w-4" />
                   <span>{t.locationStocks.downloadTemplate}</span>
                 </button>
-                <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm">
+                <label className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm">
                   <ArrowUpTrayIcon className="h-4 w-4" />
                   <span>{t.locationStocks.selectFile}</span>
                   <input
@@ -1111,7 +1111,7 @@ export default function ProductLocationStocks() {
                     value={form.product_id}
                     onChange={(e) => handleProductChange(e.target.value)}
                     disabled={editingStock !== null}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a product</option>
                     {products.map((product) => (
@@ -1134,7 +1134,7 @@ export default function ProductLocationStocks() {
                     value={form.location_id}
                     onChange={(e) => handleLocationChange(e.target.value)}
                     disabled={editingStock !== null}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Select a location</option>
                     {locations.map((location) => (
@@ -1165,7 +1165,7 @@ export default function ProductLocationStocks() {
                   className={`w-full rounded-md border px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:ring-1 ${
                     stockError
                       ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
-                      : 'border-slate-300 focus:border-indigo-500 focus:ring-indigo-500'
+                      : 'border-slate-300 focus:border-primary-500 focus:ring-primary-500'
                   }`}
                 />
                 {stockError && (
@@ -1183,7 +1183,7 @@ export default function ProductLocationStocks() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm"
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
                   {editingStock ? 'Save changes' : 'Create Stock Entry'}
                 </button>

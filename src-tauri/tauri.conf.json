@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "satria-pos",
+  "productName": "Point of Sales",
   "version": "0.1.0",
-  "identifier": "com.satria.pos",
+  "identifier": "com.pasaraplikasi.pos",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "satria-pos",
+        "title": "Point of Sales",
         "width": 800,
         "height": 600,
         "resizable": true,

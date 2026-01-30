@@ -114,7 +114,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
               >
                 Print
               </button>
@@ -134,9 +134,9 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             {/* Company Header */}
             <div className="mb-4 text-center print:mb-2">
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
-                Cuslabs POS
+                Point of Sales
               </h1>
-              <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">By Cuslabs</p>
+              <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">Point of Sales</p>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 

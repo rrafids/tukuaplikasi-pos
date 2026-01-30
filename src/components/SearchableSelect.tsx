@@ -97,7 +97,7 @@ export default function SearchableSelect({
           ),
         )
         const currentIndex = focusableOptions.findIndex((btn) =>
-          btn.classList.contains('bg-indigo-50'),
+          btn.classList.contains('bg-primary-50'),
         )
 
         let nextIndex: number
@@ -145,7 +145,7 @@ export default function SearchableSelect({
   }
 
   const baseClasses =
-    'w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed'
+    'w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed'
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>
@@ -192,7 +192,7 @@ export default function SearchableSelect({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
               {searchQuery && (
                 <button
@@ -231,13 +231,13 @@ export default function SearchableSelect({
                     disabled={isDisabled}
                     className={`w-full rounded-md px-3 py-2 text-left text-sm transition-colors ${
                       isSelected
-                        ? 'bg-indigo-50 text-indigo-700 font-medium'
+                        ? 'bg-primary-50 text-primary-700 font-medium'
                         : 'text-slate-700 hover:bg-slate-50'
                     } ${
                       isDisabled
                         ? 'cursor-not-allowed opacity-50'
                         : 'cursor-pointer'
-                    } focus:bg-indigo-50 focus:outline-none`}
+                    } focus:bg-primary-50 focus:outline-none`}
                   >
                     {getOptionLabel(option)}
                   </button>

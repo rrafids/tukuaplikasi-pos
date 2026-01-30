@@ -643,7 +643,7 @@ export default function Sales() {
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${
               showDeleted
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                ? 'border-primary-300 bg-primary-50 text-primary-700'
                 : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -652,7 +652,7 @@ export default function Sales() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.sales.addSale}</span>
@@ -674,8 +674,8 @@ export default function Sales() {
                   {totalSales}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                <ShoppingBagIcon className="h-5 w-5 text-indigo-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <ShoppingBagIcon className="h-5 w-5 text-primary-600" />
               </div>
             </div>
           </div>
@@ -713,7 +713,7 @@ export default function Sales() {
                         setSearchQuery(e.target.value)
                         setCurrentPage(1)
                       }}
-                      className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     />
                   </div>
 
@@ -728,7 +728,7 @@ export default function Sales() {
                           )
                           setCurrentPage(1)
                         }}
-                        className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                        className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                       >
                         <option value="">All Locations</option>
                         {locations.map((location) => (
@@ -748,7 +748,7 @@ export default function Sales() {
                           setCurrentPage(1)
                         }}
                         placeholder="From Date"
-                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                       />
                     </div>
                     <div className="relative">
@@ -760,7 +760,7 @@ export default function Sales() {
                           setCurrentPage(1)
                         }}
                         placeholder="To Date"
-                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                       />
                     </div>
                     {(dateFromFilter || dateToFilter) && (
@@ -896,7 +896,7 @@ export default function Sales() {
                                   <button
                                     type="button"
                                     onClick={() => setPrintingSale(sale)}
-                                    className="inline-flex items-center gap-1 rounded border border-blue-200 px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                                    className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
                                     title="Print Invoice"
                                   >
                                     <PrinterIcon className="h-3 w-3" />
@@ -991,7 +991,7 @@ export default function Sales() {
                             setItemsPerPage(Number(e.target.value))
                             setCurrentPage(1)
                           }}
-                          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                         >
                           <option value={10}>10</option>
                           <option value={25}>25</option>
@@ -1028,7 +1028,7 @@ export default function Sales() {
                               onClick={() => setCurrentPage(pageNum)}
                               className={`rounded px-3 py-1 text-xs font-medium ${
                                 currentPage === pageNum
-                                  ? 'bg-indigo-600 text-white'
+                                  ? 'bg-primary-600 text-white'
                                   : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                               }`}
                             >
@@ -1104,7 +1104,7 @@ export default function Sales() {
                       setForm({ ...form, customer_name: e.target.value })
                     }
                     placeholder="Enter customer name"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -1241,7 +1241,7 @@ export default function Sales() {
                               onChange={(e) =>
                                 updateItem(index, 'quantity', e.target.value)
                               }
-                              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                             />
                           </div>
 
@@ -1258,7 +1258,7 @@ export default function Sales() {
                               onChange={(e) =>
                                 updateItem(index, 'unit_price', e.target.value)
                               }
-                              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                              className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                             />
                           </div>
 
@@ -1297,7 +1297,7 @@ export default function Sales() {
                             discount_value: '', // Reset value when type changes
                           })
                         }
-                        className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-sm text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-sm text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                       >
                         <option value="">{t.sales.noDiscount}</option>
                         <option value="percentage">{t.sales.percentage}</option>
@@ -1319,7 +1319,7 @@ export default function Sales() {
                           : t.sales.fixedPlaceholder
                       }
                       disabled={!form.discount_type}
-                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500"
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-slate-100 disabled:text-slate-500"
                     />
                   </div>
                   {form.discount_type && form.discount_value && (
@@ -1341,34 +1341,34 @@ export default function Sales() {
                     }
                     placeholder={t.sales.notesPlaceholder}
                     rows={3}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
-                <div className="space-y-2 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                <div className="space-y-2 rounded-lg border border-primary-200 bg-primary-50 p-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-indigo-900">
+                    <span className="text-sm font-medium text-primary-900">
                       {t.sales.subtotal}:
                     </span>
-                    <span className="text-sm font-semibold text-indigo-900">
+                    <span className="text-sm font-semibold text-primary-900">
                       Rp {formSubtotal.toLocaleString('id-ID')}
                     </span>
                   </div>
                   {formDiscountAmount > 0 && (
-                    <div className="flex items-center justify-between border-t border-indigo-200 pt-2">
-                      <span className="text-sm font-medium text-indigo-900">
+                    <div className="flex items-center justify-between border-t border-primary-200 pt-2">
+                      <span className="text-sm font-medium text-primary-900">
                         {t.sales.discount}:
                       </span>
-                      <span className="text-sm font-semibold text-indigo-900">
+                      <span className="text-sm font-semibold text-primary-900">
                         - Rp {formDiscountAmount.toLocaleString('id-ID')}
                       </span>
                     </div>
                   )}
-                  <div className="flex items-center justify-between border-t border-indigo-300 pt-2">
-                    <span className="text-sm font-semibold text-indigo-900">
+                  <div className="flex items-center justify-between border-t border-primary-300 pt-2">
+                    <span className="text-sm font-semibold text-primary-900">
                       {t.sales.totalAmount}:
                     </span>
-                    <span className="text-lg font-bold text-indigo-900">
+                    <span className="text-lg font-bold text-primary-900">
                       Rp {formTotal.toLocaleString('id-ID')}
                     </span>
                   </div>
@@ -1386,7 +1386,7 @@ export default function Sales() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     {editingId == null ? 'Create Sale' : 'Update Sale'}
                   </button>

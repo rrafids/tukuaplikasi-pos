@@ -118,7 +118,7 @@ export default function StockMonitoring() {
               id="autoRefresh"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
             />
             <label htmlFor="autoRefresh" className="text-sm text-slate-600">
               Auto-refresh (5s)
@@ -126,7 +126,7 @@ export default function StockMonitoring() {
           </div>
           <button
             onClick={loadData}
-            className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
           >
             <ArrowPathIcon className="h-4 w-4" />
             Refresh
@@ -149,8 +149,8 @@ export default function StockMonitoring() {
                   {formatCurrency(summary.total_stock_value)}
                 </p>
               </div>
-              <div className="rounded-full bg-indigo-100 p-3">
-                <CubeIcon className="h-6 w-6 text-indigo-600" />
+              <div className="rounded-full bg-primary-100 p-3">
+                <CubeIcon className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -200,8 +200,8 @@ export default function StockMonitoring() {
                   {summary.products_out_of_stock} out of stock
                 </p>
               </div>
-              <div className="rounded-full bg-blue-100 p-3">
-                <MapPinIcon className="h-6 w-6 text-blue-600" />
+              <div className="rounded-full bg-primary-100 p-3">
+                <MapPinIcon className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -214,7 +214,7 @@ export default function StockMonitoring() {
               onClick={() => setActiveTab('products')}
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 activeTab === 'products'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -224,7 +224,7 @@ export default function StockMonitoring() {
               onClick={() => setActiveTab('locations')}
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 activeTab === 'locations'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
@@ -234,7 +234,7 @@ export default function StockMonitoring() {
               onClick={() => setActiveTab('alerts')}
               className={`rounded-lg px-4 py-2 text-sm font-medium ${
                 activeTab === 'alerts'
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-primary-600 text-white'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               } ${lowStockAlerts.length > 0 ? 'relative' : ''}`}
             >
@@ -269,7 +269,7 @@ export default function StockMonitoring() {
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-64 rounded-lg border border-slate-300 bg-white pl-10 pr-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-64 rounded-lg border border-slate-300 bg-white pl-10 pr-4 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
               />
             </div>
           </div>

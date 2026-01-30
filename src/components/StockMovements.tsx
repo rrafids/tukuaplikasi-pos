@@ -165,7 +165,7 @@ export default function StockMovements() {
         </span>
       ),
       sale: (
-        <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-800">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-800">
           Sale
         </span>
       ),
@@ -353,7 +353,7 @@ export default function StockMovements() {
           <button
             type="button"
             onClick={openTransferForm}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.stockMovements.transferStock}</span>
@@ -375,8 +375,8 @@ export default function StockMovements() {
                   {totalMovements}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                <ArrowTrendingUpIcon className="h-5 w-5 text-indigo-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <ArrowTrendingUpIcon className="h-5 w-5 text-primary-600" />
               </div>
             </div>
           </div>
@@ -451,7 +451,7 @@ export default function StockMovements() {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -466,7 +466,7 @@ export default function StockMovements() {
                       )
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="">All Products</option>
                     {products.map((product) => (
@@ -486,7 +486,7 @@ export default function StockMovements() {
                       )
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="">All Locations</option>
                     {locations.map((location) => (
@@ -506,7 +506,7 @@ export default function StockMovements() {
                       )
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="all">All Types</option>
                     <option value="procurement">Procurement</option>
@@ -526,7 +526,7 @@ export default function StockMovements() {
                       setCurrentPage(1)
                     }}
                     placeholder="From Date"
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
                 <div className="relative">
@@ -538,7 +538,7 @@ export default function StockMovements() {
                       setCurrentPage(1)
                     }}
                     placeholder="To Date"
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
               </div>
@@ -688,7 +688,7 @@ export default function StockMovements() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -725,7 +725,7 @@ export default function StockMovements() {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${
                             currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -787,7 +787,7 @@ export default function StockMovements() {
                           product_id: e.target.value,
                         })
                       }}
-                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">{t.stockMovements.selectProduct}</option>
                       {products.map((product) => (
@@ -818,7 +818,7 @@ export default function StockMovements() {
                               : transferForm.to_location_id,
                         })
                       }}
-                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">{t.stockMovements.selectFromLocation}</option>
                       {locations.map((location) => (
@@ -851,7 +851,7 @@ export default function StockMovements() {
                           to_location_id: e.target.value,
                         })
                       }}
-                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">{t.stockMovements.selectToLocation}</option>
                       {locations
@@ -886,7 +886,7 @@ export default function StockMovements() {
                       })
                     }}
                     placeholder="0"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                   {availableStock !== null && (
                     <p className="text-[10px] text-slate-500">
@@ -910,7 +910,7 @@ export default function StockMovements() {
                     }}
                     placeholder={t.stockMovements.notesPlaceholder}
                     rows={3}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -926,7 +926,7 @@ export default function StockMovements() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     {t.stockMovements.transfer}
                   </button>

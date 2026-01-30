@@ -242,7 +242,7 @@ export default function Roles() {
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${
               showDeleted
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                ? 'border-primary-300 bg-primary-50 text-primary-700'
                 : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
             }`}
           >
@@ -251,7 +251,7 @@ export default function Roles() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.roles.addRole}</span>
@@ -276,7 +276,7 @@ export default function Roles() {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function Roles() {
                             role.permissions.map((perm) => (
                               <span
                                 key={perm}
-                                className="inline-flex items-center rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800"
+                                className="inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-xs font-medium text-primary-800"
                               >
                                 {VIEW_LABELS[perm as ViewName] || perm}
                               </span>
@@ -413,7 +413,7 @@ export default function Roles() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -450,7 +450,7 @@ export default function Roles() {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${
                             currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -504,7 +504,7 @@ export default function Roles() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, name: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -518,7 +518,7 @@ export default function Roles() {
                       setForm((prev) => ({ ...prev, description: e.target.value }))
                     }
                     rows={3}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -536,7 +536,7 @@ export default function Roles() {
                           type="checkbox"
                           checked={form.permissions.includes(viewName)}
                           onChange={() => togglePermission(viewName)}
-                          className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                          className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                         />
                         <span className="text-xs text-slate-700">
                           {VIEW_LABELS[viewName]}
@@ -561,7 +561,7 @@ export default function Roles() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     {editingId == null ? 'Create Role' : 'Update Role'}
                   </button>

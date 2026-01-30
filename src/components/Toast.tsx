@@ -27,13 +27,13 @@ function ToastItem({ toast, onClose }: ToastProps) {
   const icons = {
     success: <CheckCircleIcon className="h-5 w-5 text-emerald-600" />,
     error: <XCircleIcon className="h-5 w-5 text-rose-600" />,
-    info: <InformationCircleIcon className="h-5 w-5 text-blue-600" />,
+    info: <InformationCircleIcon className="h-5 w-5 text-primary-600" />,
   }
 
   const bgColors = {
     success: 'bg-emerald-50 border-emerald-200',
     error: 'bg-rose-50 border-rose-200',
-    info: 'bg-blue-50 border-blue-200',
+    info: 'bg-primary-50 border-primary-200',
   }
 
   return (

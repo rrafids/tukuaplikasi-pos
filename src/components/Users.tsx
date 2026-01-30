@@ -245,7 +245,7 @@ export default function Users() {
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
-              ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+              ? 'border-primary-300 bg-primary-50 text-primary-700'
               : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
@@ -254,7 +254,7 @@ export default function Users() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.users.addUser}</span>
@@ -279,7 +279,7 @@ export default function Users() {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -292,7 +292,7 @@ export default function Users() {
                       setRoleFilter(e.target.value ? parseInt(e.target.value) : null)
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="">{t.common.all} Roles</option>
                     {roles.map((role) => (
@@ -336,7 +336,7 @@ export default function Users() {
                       <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
                         {user.username}
                         {user.id === currentUser?.id && (
-                          <span className="ml-2 text-xs text-indigo-600">(You)</span>
+                          <span className="ml-2 text-xs text-primary-600">(You)</span>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
@@ -345,7 +345,7 @@ export default function Users() {
                             Superadmin
                           </span>
                         ) : user.role_name ? (
-                          <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800">
+                          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
                             {user.role_name}
                           </span>
                         ) : (
@@ -441,7 +441,7 @@ export default function Users() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -477,7 +477,7 @@ export default function Users() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                            ? 'bg-indigo-600 text-white'
+                            ? 'bg-primary-600 text-white'
                             : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
@@ -531,7 +531,7 @@ export default function Users() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, username: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -547,7 +547,7 @@ export default function Users() {
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, password: e.target.value }))
                     }
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -561,7 +561,7 @@ export default function Users() {
                       setForm((prev) => ({ ...prev, role_id: e.target.value }))
                     }
                     disabled={form.is_superadmin}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:bg-slate-100"
                   >
                     <option value="">{t.users.selectRole}</option>
                     {roles.map((role) => (
@@ -584,7 +584,7 @@ export default function Users() {
                         role_id: e.target.checked ? '' : prev.role_id,
                       }))
                     }
-                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                   />
                   <label
                     htmlFor="is_superadmin"
@@ -607,7 +607,7 @@ export default function Users() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     {editingId == null ? 'Create User' : 'Update User'}
                   </button>

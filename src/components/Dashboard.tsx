@@ -130,7 +130,7 @@ export default function Dashboard() {
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
           </div>
           <div>
@@ -141,7 +141,7 @@ export default function Dashboard() {
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
             />
           </div>
         </div>
@@ -159,8 +159,8 @@ export default function Dashboard() {
                   {formatCurrency(summary.total_revenue)}
                 </p>
               </div>
-              <div className="rounded-full bg-indigo-100 p-3">
-                <CurrencyDollarIcon className="h-6 w-6 text-indigo-600" />
+              <div className="rounded-full bg-primary-100 p-3">
+                <CurrencyDollarIcon className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>
@@ -190,8 +190,8 @@ export default function Dashboard() {
                   {formatCurrency(summary.total_procurements_value)}
                 </p>
               </div>
-              <div className="rounded-full bg-blue-100 p-3">
-                <ShoppingCartIcon className="h-6 w-6 text-blue-600" />
+              <div className="rounded-full bg-primary-100 p-3">
+                <ShoppingCartIcon className="h-6 w-6 text-primary-600" />
               </div>
             </div>
           </div>

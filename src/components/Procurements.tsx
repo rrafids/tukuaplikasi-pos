@@ -519,7 +519,7 @@ export default function Procurements() {
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
-                ? 'border-indigo-300 bg-indigo-50 text-indigo-700'
+                ? 'border-primary-300 bg-primary-50 text-primary-700'
                 : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
@@ -528,7 +528,7 @@ export default function Procurements() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.procurements.addProcurement}</span>
@@ -548,7 +548,7 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'all'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
@@ -561,7 +561,7 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'approval'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
@@ -574,7 +574,7 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'completed'
-                  ? 'border-indigo-500 text-indigo-600'
+                  ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
@@ -642,8 +642,8 @@ export default function Procurements() {
                     .toLocaleString('id-ID')}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                <ShoppingCartIcon className="h-5 w-5 text-indigo-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <ShoppingCartIcon className="h-5 w-5 text-primary-600" />
               </div>
             </div>
           </div>
@@ -665,7 +665,7 @@ export default function Procurements() {
                     setSearchQuery(e.target.value)
                     setCurrentPage(1)
                   }}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -680,7 +680,7 @@ export default function Procurements() {
                       )
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="">All Products</option>
                     {products.map((product) => (
@@ -700,7 +700,7 @@ export default function Procurements() {
                       )
                       setCurrentPage(1)
                     }}
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
                     <option value="">All Locations</option>
                     {locations.map((location) => (
@@ -723,7 +723,7 @@ export default function Procurements() {
                       }
                     }}
                     disabled={isStatusFilterLocked}
-                    className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm ${isStatusFilterLocked
+                    className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm ${isStatusFilterLocked
                         ? 'cursor-not-allowed bg-slate-100 opacity-60'
                         : ''
                       }`}
@@ -744,7 +744,7 @@ export default function Procurements() {
                       setCurrentPage(1)
                     }}
                     placeholder="From Date"
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
                 <div className="relative">
@@ -756,7 +756,7 @@ export default function Procurements() {
                       setCurrentPage(1)
                     }}
                     placeholder="To Date"
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:text-sm"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
                 {(dateFromFilter || dateToFilter) && (
@@ -982,7 +982,7 @@ export default function Procurements() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -1018,7 +1018,7 @@ export default function Procurements() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
@@ -1193,7 +1193,7 @@ export default function Procurements() {
                       }
                     }}
                     placeholder="0"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                   <p className="text-[10px] text-slate-500">
                     This will automatically add to the location stock (converted to base UOM if different)
@@ -1213,7 +1213,7 @@ export default function Procurements() {
                       setForm({ ...form, unit_price: e.target.value })
                     }
                     placeholder="0.00"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -1228,7 +1228,7 @@ export default function Procurements() {
                       setForm({ ...form, supplier: e.target.value })
                     }
                     placeholder="Supplier name"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -1243,7 +1243,7 @@ export default function Procurements() {
                       setForm({ ...form, pic: e.target.value })
                     }
                     placeholder="Person in charge name"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -1258,7 +1258,7 @@ export default function Procurements() {
                     }
                     placeholder="Additional notes..."
                     rows={3}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
 
@@ -1299,7 +1299,7 @@ export default function Procurements() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
                     {editingId == null ? 'Create' : 'Update'}
                   </button>

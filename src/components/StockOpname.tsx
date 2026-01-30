@@ -494,7 +494,7 @@ export default function StockOpname() {
             </button>
             <button
               onClick={openCreate}
-              className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+              className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
             >
               <PlusIcon className="h-4 w-4" />
             <span>{t.stockOpname.addOpname}</span>
@@ -554,7 +554,7 @@ export default function StockOpname() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by location, date, ID..."
-                className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
             </div>
             <div className="relative">
@@ -565,7 +565,7 @@ export default function StockOpname() {
                     e.target.value ? parseInt(e.target.value, 10) : null,
                   )
                 }
-                className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
                 <option value="">All Locations</option>
                 {locations.map((loc) => (
@@ -582,7 +582,7 @@ export default function StockOpname() {
                 onChange={(e) =>
                   setSelectedStatusFilter(e.target.value as StockOpnameStatus | 'all')
                 }
-                className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
                 <option value="all">All Status</option>
                 <option value="draft">Draft</option>
@@ -598,7 +598,7 @@ export default function StockOpname() {
                 type="checkbox"
                 checked={showDeleted}
                 onChange={(e) => setShowDeleted(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
               />
               <span>Show deleted</span>
             </label>
@@ -746,7 +746,7 @@ export default function StockOpname() {
                       setItemsPerPage(Number(e.target.value))
                       setCurrentPage(1)
                     }}
-                    className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   >
                     <option value={10}>10</option>
                     <option value={25}>25</option>
@@ -781,7 +781,7 @@ export default function StockOpname() {
                         onClick={() => setCurrentPage(pageNum)}
                         className={`rounded px-3 py-1 text-xs font-medium ${
                           currentPage === pageNum
-                            ? 'bg-indigo-600 text-white'
+                            ? 'bg-primary-600 text-white'
                             : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                         }`}
                       >
@@ -830,7 +830,7 @@ export default function StockOpname() {
                       required
                       value={form.location_id}
                       onChange={(e) => setForm({ ...form, location_id: e.target.value })}
-                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
                       <option value="">Select location</option>
                       {locations.map((loc) => (
@@ -852,7 +852,7 @@ export default function StockOpname() {
                     required
                     value={form.opname_date}
                     onChange={(e) => setForm({ ...form, opname_date: e.target.value })}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
               </div>
@@ -863,7 +863,7 @@ export default function StockOpname() {
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={2}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   placeholder="Optional notes..."
                 />
               </div>
@@ -974,7 +974,7 @@ export default function StockOpname() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                  className="rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                 >
                   {editingId ? t.common.save : t.common.add} {t.stockOpname.title}
                 </button>

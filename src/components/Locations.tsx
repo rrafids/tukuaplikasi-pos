@@ -206,7 +206,7 @@ export default function Locations() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.locations.addLocation}</span>
@@ -219,7 +219,7 @@ export default function Locations() {
           <label className="inline-flex items-center gap-2 text-xs text-slate-600">
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-3.5 w-3.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
               checked={showDeleted}
               onChange={(e) => setShowDeleted(e.target.checked)}
             />
@@ -239,7 +239,7 @@ export default function Locations() {
                   {warehouseCount}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
                 <span className="text-lg">🏭</span>
               </div>
             </div>
@@ -282,7 +282,7 @@ export default function Locations() {
                   placeholder={t.locations.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 {searchQuery && (
                   <button
@@ -300,7 +300,7 @@ export default function Locations() {
                   onChange={(e) =>
                     setTypeFilter(e.target.value as 'all' | 'warehouse' | 'ecommerce')
                   }
-                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                 >
                   <option value="all">{t.common.all} Types</option>
                   <option value="warehouse">{t.locations.warehouse}</option>
@@ -335,7 +335,7 @@ export default function Locations() {
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
                             location.type === 'warehouse'
-                              ? 'bg-blue-100 text-blue-700'
+                              ? 'bg-primary-100 text-primary-700'
                               : 'bg-purple-100 text-purple-700'
                           }`}
                         >
@@ -426,7 +426,7 @@ export default function Locations() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -463,7 +463,7 @@ export default function Locations() {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                             currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -524,7 +524,7 @@ export default function Locations() {
                     setForm({ ...form, name: e.target.value })
                   }
                   placeholder="e.g., Main Warehouse, Online Store"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -541,7 +541,7 @@ export default function Locations() {
                         type: e.target.value as 'warehouse' | 'ecommerce',
                       })
                     }
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   >
                     <option value="warehouse">🏭 {t.locations.warehouse}</option>
                     <option value="ecommerce">🛒 {t.locations.ecommerce}</option>
@@ -560,7 +560,7 @@ export default function Locations() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm"
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
                   {editingLocation ? t.common.save : t.locations.addLocation}
                 </button>

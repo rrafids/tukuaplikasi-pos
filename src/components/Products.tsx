@@ -760,7 +760,7 @@ export default function Products() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.products.addProduct}</span>
@@ -782,8 +782,8 @@ export default function Products() {
                   {activeCount}
                 </p>
               </div>
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50">
-                <ArchiveBoxIcon className="h-5 w-5 text-indigo-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <ArchiveBoxIcon className="h-5 w-5 text-primary-600" />
               </div>
             </div>
           </div>
@@ -823,7 +823,7 @@ export default function Products() {
                 <label className="inline-flex items-center gap-2 text-xs text-slate-600">
                   <input
                     type="checkbox"
-                    className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                     checked={showDeleted}
                     onChange={(e) => setShowDeleted(e.target.checked)}
                   />
@@ -841,7 +841,7 @@ export default function Products() {
                   placeholder="Search products by name, ID, or price..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 {searchQuery && (
                   <button
@@ -932,7 +932,7 @@ export default function Products() {
                                 (sub) => (
                                   <span
                                     key={sub.id}
-                                    className="inline-flex items-center rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700"
+                                    className="inline-flex items-center rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700"
                                   >
                                     {sub.name}
                                   </span>
@@ -1009,7 +1009,7 @@ export default function Products() {
                                 <button
                                   type="button"
                                   onClick={() => setPrintingBarcode(product)}
-                                  className="inline-flex items-center gap-1 rounded border border-blue-200 px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+                                  className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
                                   title={t.products.printBarcode}
                                 >
                                   <PrinterIcon className="h-3 w-3" />
@@ -1133,7 +1133,7 @@ export default function Products() {
                         setItemsPerPage(Number(e.target.value))
                         setCurrentPage(1)
                       }}
-                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                     >
                       <option value={10}>10</option>
                       <option value={25}>25</option>
@@ -1170,7 +1170,7 @@ export default function Products() {
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                             currentPage === pageNum
-                              ? 'bg-indigo-600 text-white'
+                              ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                         >
@@ -1231,7 +1231,7 @@ export default function Products() {
                   value={form.name}
                   onChange={handleChange('name')}
                   placeholder="Product name"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -1244,7 +1244,7 @@ export default function Products() {
                   value={form.barcode}
                   onChange={handleChange('barcode')}
                   placeholder="Enter barcode (optional)"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 <p className="text-xs text-slate-500">
                   Leave empty to skip or enter existing barcode
@@ -1255,7 +1255,7 @@ export default function Products() {
                     <label className="text-xs font-medium text-slate-700">
                       Price
                     </label>
-                    <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                    <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
                       <span className="text-xs text-slate-500">Rp</span>
                       <input
                         type="number"
@@ -1299,7 +1299,7 @@ export default function Products() {
                 <label className="text-xs font-medium text-slate-700">
                   Subcategories
                 </label>
-                <div className="max-h-40 overflow-y-auto rounded-md border border-slate-300 p-2 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500">
+                <div className="max-h-40 overflow-y-auto rounded-md border border-slate-300 p-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
                   {activeSubcategories.length === 0 ? (
                     <p className="text-xs text-slate-500">
                       No subcategories available. Create categories and
@@ -1335,7 +1335,7 @@ export default function Products() {
                                 }))
                               }
                             }}
-                            className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
                           />
                           <span>{subcategory.name}</span>
                         </label>
@@ -1383,7 +1383,7 @@ export default function Products() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm"
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
                   {editingProduct ? t.common.save : t.products.addProduct}
                 </button>
@@ -1426,7 +1426,7 @@ export default function Products() {
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                       <div
-                        className="h-full bg-indigo-600 transition-all duration-300"
+                        className="h-full bg-primary-600 transition-all duration-300"
                         style={{
                           width: `${
                             (bulkUploadProgress.processed /
@@ -1478,7 +1478,7 @@ export default function Products() {
                       <ArrowDownTrayIcon className="h-4 w-4" />
                       {t.products.downloadTemplate}
                     </button>
-                    <label className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+                    <label className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700">
                       <ArrowUpTrayIcon className="h-4 w-4" />
                       {t.products.selectFile}
                       <input

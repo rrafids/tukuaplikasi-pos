@@ -44,11 +44,11 @@ export const en = {
   },
   // App
   app: {
-    title: 'Cuslabs POS',
+    title: 'Point of Sales',
     logout: 'Logout',
     exit: 'Exit',
     version: 'Version 1.0.0',
-    craftedBy: 'Crafted by Cuslabs Technology',
+    craftedBy: 'Crafted by TukuAplikasi.com',
   },
   // Navigation
   nav: {

@@ -359,7 +359,7 @@ export default function Categories() {
           <button
             type="button"
             onClick={openCreateCategory}
-            className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:py-2 md:text-sm"
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.categories.addCategory}</span>
@@ -372,7 +372,7 @@ export default function Categories() {
           <label className="inline-flex items-center gap-2 text-xs text-slate-600">
             <input
               type="checkbox"
-              className="h-3.5 w-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              className="h-3.5 w-3.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
               checked={showDeleted}
               onChange={(e) => setShowDeleted(e.target.checked)}
             />
@@ -399,7 +399,7 @@ export default function Categories() {
                   placeholder={t.categories.searchCategories}
                   value={categorySearchQuery}
                   onChange={(e) => setCategorySearchQuery(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 {categorySearchQuery && (
                   <button
@@ -519,7 +519,7 @@ export default function Categories() {
                           setCategoryItemsPerPage(Number(e.target.value))
                           setCategoryCurrentPage(1)
                         }}
-                        className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                       >
                         <option value={10}>10</option>
                         <option value={25}>25</option>
@@ -556,7 +556,7 @@ export default function Categories() {
                             onClick={() => setCategoryCurrentPage(pageNum)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                               categoryCurrentPage === pageNum
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                           >
@@ -598,7 +598,7 @@ export default function Categories() {
                     placeholder={t.categories.searchSubcategories}
                     value={subcategorySearchQuery}
                     onChange={(e) => setSubcategorySearchQuery(e.target.value)}
-                    className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                   {subcategorySearchQuery && (
                     <button
@@ -618,7 +618,7 @@ export default function Categories() {
                         e.target.value ? parseInt(e.target.value, 10) : null
                       )
                     }
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   >
                     <option value="">{t.categories.allCategories}</option>
                     {categories
@@ -742,7 +742,7 @@ export default function Categories() {
                           setSubcategoryItemsPerPage(Number(e.target.value))
                           setSubcategoryCurrentPage(1)
                         }}
-                        className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                        className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                       >
                         <option value={10}>10</option>
                         <option value={25}>25</option>
@@ -779,7 +779,7 @@ export default function Categories() {
                             onClick={() => setSubcategoryCurrentPage(pageNum)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium ${
                               subcategoryCurrentPage === pageNum
-                                ? 'bg-indigo-600 text-white'
+                                ? 'bg-primary-600 text-white'
                                 : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                           >
@@ -839,7 +839,7 @@ export default function Categories() {
                     setCategoryForm({ ...categoryForm, name: e.target.value })
                   }
                   placeholder="e.g., Electronics, Clothing"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -853,7 +853,7 @@ export default function Categories() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm"
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
                   {editingCategory ? t.common.save : t.categories.addCategory}
                 </button>
@@ -905,7 +905,7 @@ export default function Categories() {
                         category_id: e.target.value,
                       })
                     }
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                   >
                     <option value="">{t.categories.selectCategory}</option>
                     {categories
@@ -932,7 +932,7 @@ export default function Categories() {
                     setSubcategoryForm({ ...subcategoryForm, name: e.target.value })
                   }
                   placeholder="e.g., Smartphones, T-Shirts"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
@@ -946,7 +946,7 @@ export default function Categories() {
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-indigo-700 md:px-4 md:text-sm"
+                  className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
                   {editingSubcategory ? 'Save changes' : 'Create subcategory'}
                 </button>

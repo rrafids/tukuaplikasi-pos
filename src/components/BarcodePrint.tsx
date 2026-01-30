@@ -44,7 +44,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
           {onClose && (
             <button
               onClick={onClose}
-              className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              className="w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
             >
               Close
             </button>
@@ -94,7 +94,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
-                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
               >
                 Print
               </button>
@@ -126,7 +126,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
 
             <div className="mt-4 text-center print:mt-2">
               <p className="text-xs text-slate-500 print:text-[8pt]">
-                Cuslabs POS
+                Point of Sales
               </p>
             </div>
           </div>

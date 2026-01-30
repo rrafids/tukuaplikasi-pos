@@ -129,7 +129,7 @@ export default function LicenseActivation() {
               value={licenseKey}
               onChange={(e) => setLicenseKey(e.target.value)}
               placeholder={t.license.enterLicenseKey}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleActivate()
@@ -166,7 +166,7 @@ export default function LicenseActivation() {
             handleActivate()
           }}
           disabled={isActivating}
-          className="mt-6 w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+          className="mt-6 w-full rounded-md bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
         >
           {isActivating ? t.license.activating : t.license.activate}
         </button>

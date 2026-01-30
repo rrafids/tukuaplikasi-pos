@@ -83,7 +83,7 @@ function AppContent() {
       <button
         onClick={() => setCurrentView(view)}
         className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm ${currentView === view
-          ? 'bg-indigo-600 text-white shadow-sm font-medium'
+          ? 'bg-primary-600 text-white shadow-sm font-medium'
           : 'text-slate-600 hover:bg-slate-100 font-normal'
           }`}
       >
@@ -103,9 +103,7 @@ function AppContent() {
           <div className="shrink-0 border-b border-slate-200 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white">
-                  SP
-                </div>
+                <img src="/tlog.png" alt="" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
                 <div>
                   <div className="text-sm font-semibold tracking-tight">
                     {t.app.title}
