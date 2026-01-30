@@ -61,6 +61,8 @@ The project includes automated builds via GitHub Actions:
 
 **Artifacts:** All builds upload artifacts that can be downloaded from the Actions tab in GitHub.
 
+**Location:** Workflow files are in the repository root at `.github/workflows/`. They run with `working-directory: apps/cuslabs-pos`. Workflows only run when files under `apps/cuslabs-pos/` change (or when triggered manually).
+
 ## Platform-Specific Configuration
 
 ### Windows Configuration

@@ -1,0 +1,143 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: x86_64-pc-windows-msvc
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Build Tauri Windows
+      run: yarn tauri build --target x86_64-pc-windows-msvc
+
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: windows-build
+        path: |
+          src-tauri/target/x86_64-pc-windows-msvc/release/bundle/msi/*.msi
+          src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+        retention-days: 30
+
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'yarn'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 33
+        target: default
+        arch: arm64-v8a
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: aarch64-linux-android
+
+    - name: Install dependencies
+      run: yarn install
+
+    - name: Initialize Android project
+      run: |
+        echo "Running tauri android init..."
+        yarn tauri android init 2>&1 || true
+        ls -la src-tauri/
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        JAVA_HOME: ${{ env.JAVA_HOME }}
+
+    - name: Verify Android project exists
+      run: |
+        if [ -d "src-tauri/gen/android" ] || [ -d "src-tauri/android" ]; then
+          echo "Android project directory found"
+        else
+          echo "Error: Android project directory not found"
+          ls -la src-tauri/
+          exit 1
+        fi
+
+    - name: Setup NDK environment
+      run: |
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        echo "ANDROID_NDK_HOME=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+        echo "ANDROID_NDK_ROOT=$ANDROID_NDK_HOME" >> $GITHUB_ENV
+        NDK_TOOLCHAIN=""
+        if [ -d "$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin" ]; then
+          NDK_TOOLCHAIN="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin"
+        else
+          FOUND_PATH=$(find "$ANDROID_NDK_HOME" -type d -path "*/toolchains/llvm/prebuilt/*/bin" 2>/dev/null | head -1)
+          [ -n "$FOUND_PATH" ] && NDK_TOOLCHAIN="$FOUND_PATH"
+        fi
+        [ -z "$NDK_TOOLCHAIN" ] && { echo "NDK toolchain not found"; exit 1; }
+        echo "PATH=$NDK_TOOLCHAIN:$PATH" >> $GITHUB_ENV
+        FOUND_CLANG=$(find "$NDK_TOOLCHAIN" -name "aarch64-linux-android*-clang" 2>/dev/null | head -1)
+        [ -n "$FOUND_CLANG" ] && CLANG="$FOUND_CLANG" && CLANGXX="${FOUND_CLANG}++"
+        AR="$NDK_TOOLCHAIN/llvm-ar"
+        [ ! -f "$AR" ] && AR=$(find "$NDK_TOOLCHAIN" -name "llvm-ar" 2>/dev/null | head -1)
+        [ -z "$CLANG" ] || [ -z "$AR" ] && { echo "NDK tools not found"; exit 1; }
+        echo "CC_aarch64_linux_android=$CLANG" >> $GITHUB_ENV
+        echo "CXX_aarch64_linux_android=$CLANGXX" >> $GITHUB_ENV
+        echo "AR_aarch64_linux_android=$AR" >> $GITHUB_ENV
+        echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CLANG" >> $GITHUB_ENV
+        echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_AR=$AR" >> $GITHUB_ENV
+
+    - name: Build Android APK
+      run: yarn tauri android build
+      env:
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
+        ANDROID_NDK_ROOT: ${{ env.ANDROID_NDK_HOME }}
+        JAVA_HOME: ${{ env.JAVA_HOME }}
+        CC_aarch64_linux_android: ${{ env.CC_aarch64_linux_android }}
+        CXX_aarch64_linux_android: ${{ env.CXX_aarch64_linux_android }}
+        AR_aarch64_linux_android: ${{ env.AR_aarch64_linux_android }}
+        CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER: ${{ env.CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER }}
+        CARGO_TARGET_AARCH64_LINUX_ANDROID_AR: ${{ env.CARGO_TARGET_AARCH64_LINUX_ANDROID_AR }}
+
+    - name: Upload Android APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-build
+        path: |
+          src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+          src-tauri/android/app/build/outputs/apk/**/*.apk
+        if-no-files-found: warn
+        retention-days: 30
