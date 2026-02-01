@@ -45,6 +45,7 @@ type View = 'dashboard' | 'products' | 'categories' | 'uoms' | 'locations' | 'pr
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard')
+  const [forceShowLicenseScreen, setForceShowLicenseScreen] = useState(false)
   const { toasts, removeToast } = useToastContext()
   const { user, logout, hasPermission, isLoading: authLoading } = useAuth()
   const { isActivated, isLoading: licenseLoading } = useLicense()
@@ -59,14 +60,19 @@ function AppContent() {
     )
   }
 
-  // Show license activation if not activated
-  if (!isActivated) {
-    return <LicenseActivation />
+  // Show license activation if not activated or user requested from login
+  if (!isActivated || forceShowLicenseScreen) {
+    return (
+      <LicenseActivation
+        fromLogin={forceShowLicenseScreen}
+        onBackToLogin={() => setForceShowLicenseScreen(false)}
+      />
+    )
   }
 
   // Show login if not authenticated
   if (!user) {
-    return <Login />
+    return <Login onShowLicense={() => setForceShowLicenseScreen(true)} />
   }
 
   // Helper function to render menu item conditionally

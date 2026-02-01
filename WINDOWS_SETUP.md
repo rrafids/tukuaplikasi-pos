@@ -195,7 +195,7 @@ Run it:
 After installation:
 1. ✅ Test dev mode: `yarn tauri dev`
 2. ✅ Build for production: `yarn tauri build`
-3. ✅ Find .exe in: `src-tauri/target/release/satria-pos.exe`
+3. ✅ Find .exe in: `src-tauri/target/release/tukuaplikasi-pos.exe`
 4. ✅ Find installer in: `src-tauri/target/release/bundle/msi/`
 
 ## System Requirements

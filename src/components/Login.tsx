@@ -1,16 +1,31 @@
 import { useState } from 'react'
+import { getCurrentWindow } from '@tauri-apps/api/window'
+import { PowerIcon, KeyIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../contexts/AuthContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageToggle from './LanguageToggle'
 
-export default function Login() {
+interface LoginProps {
+  onShowLicense?: () => void
+}
+
+export default function Login({ onShowLicense }: LoginProps) {
   const { login } = useAuth()
   const toast = useToastContext()
   const { t } = useLanguage()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const handleExit = async () => {
+    try {
+      const appWindow = getCurrentWindow()
+      await appWindow.close()
+    } catch (err) {
+      console.error('Exit error:', err)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -90,13 +105,33 @@ export default function Login() {
             >
               {isLoading ? t.login.signingIn : t.login.signIn}
             </button>
+
+            {onShowLicense && (
+              <button
+                type="button"
+                onClick={onShowLicense}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              >
+                <KeyIcon className="h-5 w-5" />
+                {t.login.activateLicense}
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={handleExit}
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-600 shadow-sm hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+            >
+              <PowerIcon className="h-5 w-5" />
+              {t.app.exit}
+            </button>
           </form>
 
-          {/* <div className="mt-6 rounded-lg bg-amber-50 p-4 text-xs text-amber-800">
-            <p className="font-semibold">Default Credentials:</p>
-            <p>Username: <strong>admin</strong></p>
-            <p>Password: <strong>admin123</strong></p>
-          </div> */}
+          <div className="mt-6 rounded-lg bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800">
+            <p className="font-semibold">{t.login.defaultCredentials}</p>
+            <p>{t.login.username}: <strong>admin</strong></p>
+            <p>{t.login.password}: <strong>admin123</strong></p>
+          </div>
         </div>
       </div>
     </div>

@@ -1,11 +1,16 @@
 import { useState } from 'react'
-import { KeyIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { KeyIcon, CheckCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { useLicense } from '../contexts/LicenseContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageToggle from './LanguageToggle'
 
-export default function LicenseActivation() {
+interface LicenseActivationProps {
+  fromLogin?: boolean
+  onBackToLogin?: () => void
+}
+
+export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseActivationProps) {
   const { license, isActivated, activateLicense, deactivateLicense } = useLicense()
   const toast = useToastContext()
   const { t } = useLanguage()
@@ -56,6 +61,7 @@ export default function LicenseActivation() {
           <LanguageToggle />
         </div>
         <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <img src="/tlog.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
           <div className="flex items-center justify-center">
             <CheckCircleIcon className="h-16 w-16 text-green-500" />
           </div>
@@ -92,12 +98,23 @@ export default function LicenseActivation() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handleDeactivate}
-            className="mt-6 w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          >
-            {t.license.deactivate}
-          </button>
+          <div className="mt-6 flex flex-col gap-2">
+            {fromLogin && onBackToLogin && (
+              <button
+                onClick={onBackToLogin}
+                className="flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <ArrowLeftIcon className="h-5 w-5" />
+                {t.login.backToLogin}
+              </button>
+            )}
+            <button
+              onClick={handleDeactivate}
+              className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+            >
+              {t.license.deactivate}
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -109,6 +126,7 @@ export default function LicenseActivation() {
         <LanguageToggle />
       </div>
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+        <img src="/tlog.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
         <div className="flex items-center justify-center">
           <KeyIcon className="h-16 w-16 text-slate-400" />
         </div>

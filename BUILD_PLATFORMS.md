@@ -11,7 +11,7 @@ Build Windows executable (.exe) - **Fully supported and tested**
 npm run tauri:build:windows
 ```
 
-Output: `src-tauri/target/x86_64-pc-windows-msvc/release/satria-pos.exe`
+Output: `src-tauri/target/x86_64-pc-windows-msvc/release/tukuaplikasi-pos.exe`
 
 ### ✅ Android
 Build Android APK - **Newly added, ready to use**
