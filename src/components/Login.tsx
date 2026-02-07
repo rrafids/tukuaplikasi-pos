@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageToggle from './LanguageToggle'
+import ConfirmModal from './ConfirmModal'
 
 interface LoginProps {
   onShowLicense?: () => void
@@ -17,8 +18,12 @@ export default function Login({ onShowLicense }: LoginProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
 
-  const handleExit = async () => {
+  const handleExitClick = () => setShowExitConfirm(true)
+
+  const handleExitConfirm = async () => {
+    setShowExitConfirm(false)
     try {
       const appWindow = getCurrentWindow()
       await appWindow.close()
@@ -119,13 +124,23 @@ export default function Login({ onShowLicense }: LoginProps) {
 
             <button
               type="button"
-              onClick={handleExit}
+              onClick={handleExitClick}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white px-4 py-2 text-sm font-medium text-rose-600 shadow-sm hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
             >
               <PowerIcon className="h-5 w-5" />
               {t.app.exit}
             </button>
           </form>
+
+          <ConfirmModal
+            open={showExitConfirm}
+            message={t.common.exitConfirm}
+            confirmLabel={t.common.yes}
+            cancelLabel={t.common.no}
+            confirmVariant="danger"
+            onConfirm={handleExitConfirm}
+            onCancel={() => setShowExitConfirm(false)}
+          />
 
           <div className="mt-6 rounded-lg bg-amber-50 border border-amber-200 p-4 text-xs text-amber-800">
             <p className="font-semibold">{t.login.defaultCredentials}</p>

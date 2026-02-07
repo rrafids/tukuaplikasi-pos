@@ -125,6 +125,10 @@ export default function Users() {
     setEditingId(null)
   }
 
+  const handleCloseForm = () => {
+    if (confirm(t.common.closeConfirm)) closeForm()
+  }
+
   const resetForm = () => {
     setForm({
       username: '',
@@ -511,7 +515,7 @@ export default function Users() {
               </h2>
               <button
                 type="button"
-                onClick={closeForm}
+                onClick={handleCloseForm}
                 className="rounded p-1 text-slate-400 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -600,7 +604,7 @@ export default function Users() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={closeForm}
+                    onClick={handleCloseForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
                     Cancel

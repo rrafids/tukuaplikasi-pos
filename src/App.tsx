@@ -39,6 +39,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LicenseProvider, useLicense } from './contexts/LicenseContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
 import LanguageToggle from './components/LanguageToggle'
+import ConfirmModal from './components/ConfirmModal'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
 type View = 'dashboard' | 'products' | 'categories' | 'uoms' | 'locations' | 'product-location-stocks' | 'procurements' | 'disposals' | 'sales' | 'stock-movements' | 'audit-trail' | 'stock-monitoring' | 'stock-opname' | 'users' | 'roles'
@@ -46,6 +47,7 @@ type View = 'dashboard' | 'products' | 'categories' | 'uoms' | 'locations' | 'pr
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard')
   const [forceShowLicenseScreen, setForceShowLicenseScreen] = useState(false)
+  const [showExitConfirm, setShowExitConfirm] = useState(false)
   const { toasts, removeToast } = useToastContext()
   const { user, logout, hasPermission, isLoading: authLoading } = useAuth()
   const { isActivated, isLoading: licenseLoading } = useLicense()
@@ -202,10 +204,7 @@ function AppContent() {
               <span>{t.app.logout}</span>
             </button>
             <button
-              onClick={async () => {
-                const appWindow = getCurrentWindow()
-                await appWindow.close()
-              }}
+              onClick={() => setShowExitConfirm(true)}
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-rose-600 hover:bg-rose-50"
             >
               <PowerIcon className="h-5 w-5" />
@@ -253,6 +252,19 @@ function AppContent() {
           <Products />
         )}
       </div>
+      <ConfirmModal
+        open={showExitConfirm}
+        message={t.common.exitConfirm}
+        confirmLabel={t.common.yes}
+        cancelLabel={t.common.no}
+        confirmVariant="danger"
+        onConfirm={async () => {
+          setShowExitConfirm(false)
+          const appWindow = getCurrentWindow()
+          await appWindow.close()
+        }}
+        onCancel={() => setShowExitConfirm(false)}
+      />
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   )

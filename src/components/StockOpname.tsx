@@ -171,6 +171,10 @@ export default function StockOpname() {
     setOpnameItems([])
   }
 
+  const handleCloseForm = () => {
+    if (confirm(t.common.closeConfirm)) closeForm()
+  }
+
   const handleDownloadTemplate = async () => {
     try {
       if (!form.location_id) {
@@ -812,7 +816,7 @@ export default function StockOpname() {
                 {editingId ? t.stockOpname.editOpname : t.stockOpname.addOpname}
               </h2>
               <button
-                onClick={closeForm}
+                onClick={handleCloseForm}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -967,7 +971,7 @@ export default function StockOpname() {
               <div className="flex justify-end gap-2 border-t border-slate-200 pt-4">
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={handleCloseForm}
                   className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                 >
                   {t.common.cancel}

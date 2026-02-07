@@ -243,6 +243,10 @@ export default function StockMovements() {
     setAvailableStock(null)
   }
 
+  const handleCloseTransferForm = () => {
+    if (confirm(t.common.closeConfirm)) closeTransferForm()
+  }
+
   const handleTransferSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -761,7 +765,7 @@ export default function StockMovements() {
               </h2>
               <button
                 type="button"
-                onClick={closeTransferForm}
+                onClick={handleCloseTransferForm}
                 className="rounded p-1 text-slate-400 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -919,7 +923,7 @@ export default function StockMovements() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={closeTransferForm}
+                    onClick={handleCloseTransferForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
                     {t.common.cancel}

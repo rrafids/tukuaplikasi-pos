@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import JsBarcode from 'jsbarcode'
 import type { ProductRow } from '../db/products'
+import { useLanguage } from '../contexts/LanguageContext'
 
 interface BarcodePrintProps {
   product: ProductRow
@@ -8,6 +9,11 @@ interface BarcodePrintProps {
 }
 
 export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
+  const { t } = useLanguage()
+
+  const handleClose = () => {
+    if (confirm(t.common.closeConfirm)) onClose?.()
+  }
   const barcodeRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
@@ -43,10 +49,10 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
           </p>
           {onClose && (
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
             >
-              Close
+              {t.common.close}
             </button>
           )}
         </div>
@@ -100,10 +106,10 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
               </button>
               {onClose && (
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
-                  Close
+                  {t.common.close}
                 </button>
               )}
             </div>

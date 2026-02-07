@@ -9,6 +9,8 @@ export const id = {
     save: 'Simpan',
     cancel: 'Batal',
     close: 'Tutup',
+    closeConfirm: 'Apakah Anda yakin ingin menutup? Perubahan yang belum disimpan akan hilang.',
+    exitConfirm: 'Apakah Anda yakin ingin keluar dari aplikasi?',
     confirm: 'Konfirmasi',
     yes: 'Ya',
     no: 'Tidak',

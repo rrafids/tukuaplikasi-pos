@@ -213,6 +213,10 @@ export default function Disposals() {
     setEditingId(null)
   }
 
+  const handleCloseForm = () => {
+    if (confirm(t.common.closeConfirm)) closeForm()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -986,7 +990,7 @@ export default function Disposals() {
               </h2>
               <button
                 type="button"
-                onClick={closeForm}
+                onClick={handleCloseForm}
                 className="rounded p-1 text-slate-400 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -1135,7 +1139,7 @@ export default function Disposals() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={handleCloseForm}
                   className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                 >
                   Cancel

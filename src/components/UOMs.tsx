@@ -142,6 +142,10 @@ export default function UOMs() {
     setEditingId(null)
   }
 
+  const handleCloseForm = () => {
+    if (confirm(t.common.closeConfirm)) closeForm()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -239,6 +243,10 @@ export default function UOMs() {
   const closeConversionForm = () => {
     setShowConversionForm(false)
     setEditingConversionId(null)
+  }
+
+  const handleCloseConversionForm = () => {
+    if (confirm(t.common.closeConfirm)) closeConversionForm()
   }
 
   const handleConversionSubmit = async (e: React.FormEvent) => {
@@ -708,7 +716,7 @@ export default function UOMs() {
               </div>
               <button
                 type="button"
-                onClick={closeForm}
+                onClick={handleCloseForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -755,7 +763,7 @@ export default function UOMs() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={closeForm}
+                  onClick={handleCloseForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   Cancel
@@ -787,7 +795,7 @@ export default function UOMs() {
               </div>
               <button
                 type="button"
-                onClick={closeConversionForm}
+                onClick={handleCloseConversionForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -876,7 +884,7 @@ export default function UOMs() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={closeConversionForm}
+                  onClick={handleCloseConversionForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   Cancel

@@ -9,6 +9,8 @@ export const en = {
     save: 'Save',
     cancel: 'Cancel',
     close: 'Close',
+    closeConfirm: 'Are you sure you want to close? Unsaved changes will be lost.',
+    exitConfirm: 'Are you sure you want to exit the application?',
     confirm: 'Confirm',
     yes: 'Yes',
     no: 'No',

@@ -162,6 +162,10 @@ export default function Categories() {
     setEditingCategoryId(null)
   }
 
+  const handleCloseCategoryForm = () => {
+    if (confirm(t.common.closeConfirm)) closeCategoryForm()
+  }
+
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -252,6 +256,10 @@ export default function Categories() {
   const closeSubcategoryForm = () => {
     setShowSubcategoryForm(false)
     setEditingSubcategoryId(null)
+  }
+
+  const handleCloseSubcategoryForm = () => {
+    if (confirm(t.common.closeConfirm)) closeSubcategoryForm()
   }
 
   const handleSubcategorySubmit = async (e: React.FormEvent) => {
@@ -819,7 +827,7 @@ export default function Categories() {
               </div>
               <button
                 type="button"
-                onClick={closeCategoryForm}
+                onClick={handleCloseCategoryForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -846,7 +854,7 @@ export default function Categories() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={closeCategoryForm}
+                  onClick={handleCloseCategoryForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   {t.common.cancel}
@@ -880,7 +888,7 @@ export default function Categories() {
               </div>
               <button
                 type="button"
-                onClick={closeSubcategoryForm}
+                onClick={handleCloseSubcategoryForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -939,7 +947,7 @@ export default function Categories() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={closeSubcategoryForm}
+                  onClick={handleCloseSubcategoryForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   {t.common.cancel}
