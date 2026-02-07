@@ -125,9 +125,6 @@ export default function Roles() {
     setEditingId(null)
   }
 
-  const handleCloseForm = () => {
-    if (confirm(t.common.closeConfirm)) closeForm()
-  }
 
   const resetForm = () => {
     setForm({
@@ -488,7 +485,7 @@ export default function Roles() {
               </h2>
               <button
                 type="button"
-                onClick={handleCloseForm}
+                onClick={closeForm}
                 className="rounded p-1 text-slate-400 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -558,7 +555,7 @@ export default function Roles() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={handleCloseForm}
+                    onClick={closeForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
                     Cancel

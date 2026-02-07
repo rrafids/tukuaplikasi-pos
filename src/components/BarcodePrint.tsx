@@ -10,10 +10,6 @@ interface BarcodePrintProps {
 
 export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
   const { t } = useLanguage()
-
-  const handleClose = () => {
-    if (confirm(t.common.closeConfirm)) onClose?.()
-  }
   const barcodeRef = useRef<SVGSVGElement>(null)
 
   useEffect(() => {
@@ -49,7 +45,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
           </p>
           {onClose && (
             <button
-              onClick={handleClose}
+              onClick={() => onClose?.()}
               className="w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
             >
               {t.common.close}
@@ -106,7 +102,7 @@ export default function BarcodePrint({ product, onClose }: BarcodePrintProps) {
               </button>
               {onClose && (
                 <button
-                  onClick={handleClose}
+                  onClick={() => onClose?.()}
                   className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
                 >
                   {t.common.close}

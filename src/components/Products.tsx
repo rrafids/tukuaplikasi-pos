@@ -213,17 +213,6 @@ export default function Products() {
     // Don't clear subcategories/UOMs state - keep them loaded for next time
   }
 
-  const handleCloseForm = () => {
-    if (confirm(t.common.closeConfirm)) closeForm()
-  }
-
-  const handleCloseBulkUpload = () => {
-    if (confirm(t.common.closeConfirm)) {
-      setShowBulkUpload(false)
-      setBulkUploadProgress(null)
-    }
-  }
-
   const handleChange =
     (field: keyof ProductFormState) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1224,7 +1213,7 @@ export default function Products() {
               </div>
               <button
                 type="button"
-                onClick={handleCloseForm}
+                onClick={closeForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -1387,7 +1376,7 @@ export default function Products() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={handleCloseForm}
+                  onClick={closeForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   {t.common.cancel}
@@ -1413,7 +1402,7 @@ export default function Products() {
                 {t.products.bulkUpload}
               </h2>
               <button
-                onClick={handleCloseBulkUpload}
+                onClick={() => { setShowBulkUpload(false); setBulkUploadProgress(null) }}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />

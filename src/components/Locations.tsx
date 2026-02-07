@@ -109,9 +109,6 @@ export default function Locations() {
     setEditingId(null)
   }
 
-  const handleCloseForm = () => {
-    if (confirm(t.common.closeConfirm)) closeForm()
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -508,7 +505,7 @@ export default function Locations() {
               </div>
               <button
                 type="button"
-                onClick={handleCloseForm}
+                onClick={closeForm}
                 className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <XMarkIcon className="h-5 w-5" />
@@ -557,7 +554,7 @@ export default function Locations() {
               <div className="flex items-center justify-end gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={handleCloseForm}
+                  onClick={closeForm}
                   className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 md:px-4 md:text-sm"
                 >
                   {t.common.cancel}
