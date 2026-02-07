@@ -4,6 +4,7 @@ import { useLicense } from '../contexts/LicenseContext'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import LanguageToggle from './LanguageToggle'
+import ConfirmModal from './ConfirmModal'
 
 interface LicenseActivationProps {
   fromLogin?: boolean
@@ -17,6 +18,7 @@ export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseA
   const [licenseKey, setLicenseKey] = useState('')
   const [isActivating, setIsActivating] = useState(false)
   const [errorDetails, setErrorDetails] = useState<string | null>(null)
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false)
 
   const handleActivate = async () => {
     setErrorDetails(null)
@@ -47,11 +49,12 @@ export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseA
     }
   }
 
-  const handleDeactivate = async () => {
-    if (confirm(t.license.deactivateConfirm)) {
-      await deactivateLicense()
-      toast.success(t.license.deactivated)
-    }
+  const handleDeactivateClick = () => setShowDeactivateConfirm(true)
+
+  const handleDeactivateConfirm = async () => {
+    setShowDeactivateConfirm(false)
+    await deactivateLicense()
+    toast.success(t.license.deactivated)
   }
 
   if (isActivated && license) {
@@ -109,12 +112,21 @@ export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseA
               </button>
             )}
             <button
-              onClick={handleDeactivate}
+              onClick={handleDeactivateClick}
               className="w-full rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
             >
               {t.license.deactivate}
             </button>
           </div>
+          <ConfirmModal
+            open={showDeactivateConfirm}
+            message={t.license.deactivateConfirm}
+            confirmLabel={t.common.yes}
+            cancelLabel={t.common.no}
+            confirmVariant="danger"
+            onConfirm={handleDeactivateConfirm}
+            onCancel={() => setShowDeactivateConfirm(false)}
+          />
         </div>
       </div>
     )
