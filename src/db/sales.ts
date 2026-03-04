@@ -15,6 +15,7 @@ export type SaleRow = {
   discount_value: number | null
   notes: string | null
   user_id: number | null
+  payment_method: 'cash' | 'utang'
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -80,6 +81,7 @@ async function getDb() {
           total_amount REAL NOT NULL CHECK(total_amount >= 0),
           notes TEXT,
           user_id INTEGER,
+          payment_method TEXT DEFAULT 'cash' CHECK(payment_method IN ('cash', 'utang')),
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           deleted_at TEXT,
@@ -126,6 +128,14 @@ async function getDb() {
       } catch (error) {
         // Column already exists, ignore
         console.log('[DB] discount_value column already exists or error adding it:', error)
+      }
+
+      // Add payment_method column if it doesn't exist (for existing databases)
+      try {
+        await db.execute(`ALTER TABLE sales ADD COLUMN payment_method TEXT DEFAULT 'cash' CHECK(payment_method IN ('cash', 'utang'))`)
+      } catch (error) {
+        // Column already exists, ignore
+        console.log('[DB] payment_method column already exists or error adding it:', error)
       }
 
       // Create sales_items table
@@ -188,6 +198,7 @@ export async function listSales(): Promise<SaleWithItems[]> {
         s.discount_value,
         s.notes,
         s.user_id,
+        s.payment_method,
         s.created_at,
         s.updated_at,
         s.deleted_at,
@@ -252,6 +263,7 @@ export async function createSale(input: {
   discount_value?: number | null
   notes?: string | null
   user_id?: number | null
+  payment_method?: 'cash' | 'utang'
 }): Promise<SaleWithItems> {
   try {
     const db = await getDb()
@@ -382,8 +394,8 @@ export async function createSale(input: {
 
     // Create sale
     await db.execute(
-      `INSERT INTO sales (location_id, customer_name, invoice_number, total_amount, discount_type, discount_value, notes, user_id, created_at, updated_at, deleted_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NULL)`,
+      `INSERT INTO sales (location_id, customer_name, invoice_number, total_amount, discount_type, discount_value, notes, user_id, payment_method, created_at, updated_at, deleted_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL)`,
       [
         input.location_id,
         input.customer_name?.trim() || null,
@@ -393,6 +405,7 @@ export async function createSale(input: {
         input.discount_value ?? null,
         input.notes?.trim() || null,
         input.user_id ?? null,
+        input.payment_method ?? 'cash',
         now,
         now,
       ],
@@ -516,6 +529,7 @@ export async function updateSale(
     discount_type?: 'percentage' | 'fixed' | null
     discount_value?: number | null
     notes?: string | null
+    payment_method?: 'cash' | 'utang'
   },
 ): Promise<SaleWithItems | null> {
   try {
@@ -612,11 +626,13 @@ export async function updateSale(
     // Calculate final total
     const totalAmount = subtotal - discountAmount
 
+    const paymentMethod = input.payment_method !== undefined ? input.payment_method : existing.payment_method
+
     // Update sale
     await db.execute(
       `UPDATE sales 
-       SET location_id = $1, customer_name = $2, total_amount = $3, discount_type = $4, discount_value = $5, notes = $6, updated_at = $7
-       WHERE id = $8`,
+       SET location_id = $1, customer_name = $2, total_amount = $3, discount_type = $4, discount_value = $5, notes = $6, updated_at = $7, payment_method = $8
+       WHERE id = $9`,
       [
         locationId,
         input.customer_name !== undefined ? (input.customer_name?.trim() || null) : existing.customer_name,
@@ -625,6 +641,7 @@ export async function updateSale(
         discountValue,
         input.notes !== undefined ? (input.notes?.trim() || null) : existing.notes,
         now,
+        paymentMethod,
         id,
       ],
     )
@@ -655,8 +672,10 @@ export async function updateSale(
         s.customer_name,
         s.invoice_number,
         s.total_amount,
+        s.discount_value,
         s.notes,
         s.user_id,
+        s.payment_method,
         s.created_at,
         s.updated_at,
         s.deleted_at,

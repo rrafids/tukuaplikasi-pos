@@ -245,8 +245,8 @@ export default function StockOpname() {
           const items = jsonData
             .map((row) => {
               const productId = row['Product ID']
-              const actualStock = typeof row['Actual Stock'] === 'string' 
-                ? parseFloat(row['Actual Stock']) || 0 
+              const actualStock = typeof row['Actual Stock'] === 'string'
+                ? parseFloat(row['Actual Stock']) || 0
                 : row['Actual Stock'] || 0
               const systemStock = row['System Stock'] || 0
 
@@ -485,18 +485,18 @@ export default function StockOpname() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-            <button
-              onClick={handleExportExcel}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              <span>Export</span>
-            </button>
-            <button
-              onClick={openCreate}
-              className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
-            >
-              <PlusIcon className="h-4 w-4" />
+          <button
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            <span>Export</span>
+          </button>
+          <button
+            onClick={openCreate}
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
+          >
+            <PlusIcon className="h-4 w-4" />
             <span>{t.stockOpname.addOpname}</span>
           </button>
         </div>
@@ -757,6 +757,13 @@ export default function StockOpname() {
               </div>
               <div className="flex items-center gap-2">
                 <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  «
+                </button>
+                <button
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                   className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -779,11 +786,10 @@ export default function StockOpname() {
                       <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`rounded px-3 py-1 text-xs font-medium ${
-                          currentPage === pageNum
+                        className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
                             ? 'bg-primary-600 text-white'
                             : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         {pageNum}
                       </button>
@@ -796,6 +802,13 @@ export default function StockOpname() {
                   className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  »
                 </button>
               </div>
             </div>
@@ -944,13 +957,12 @@ export default function StockOpname() {
                                 />
                               </td>
                               <td
-                                className={`px-2 py-1.5 text-right font-medium ${
-                                  difference > 0
+                                className={`px-2 py-1.5 text-right font-medium ${difference > 0
                                     ? 'text-emerald-600'
                                     : difference < 0
-                                    ? 'text-rose-600'
-                                    : 'text-slate-600'
-                                }`}
+                                      ? 'text-rose-600'
+                                      : 'text-slate-600'
+                                  }`}
                               >
                                 {difference > 0 ? '+' : ''}
                                 {difference}

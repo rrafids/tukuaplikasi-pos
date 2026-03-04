@@ -27,7 +27,7 @@ export default function Roles() {
   const toast = useToastContext()
   const { t } = useLanguage()
   const [roles, setRoles] = useState<RoleWithPermissions[]>([])
-  
+
   const VIEW_LABELS: Record<ViewName, string> = {
     dashboard: t.nav.dashboard,
     products: t.nav.products,
@@ -38,6 +38,7 @@ export default function Roles() {
     procurements: t.nav.procurements,
     disposals: t.nav.disposals,
     sales: t.nav.sales,
+    'laba-rugi': t.nav.labaRugi,
     'stock-movements': t.nav.stockMovements,
     'stock-monitoring': t.nav.stockMonitoring,
     'stock-opname': t.nav.stockOpname,
@@ -241,11 +242,10 @@ export default function Roles() {
           <button
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
-            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${
-              showDeleted
-                ? 'border-primary-300 bg-primary-50 text-primary-700'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
+            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
+              ? 'border-primary-300 bg-primary-50 text-primary-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
           >
             {showDeleted ? 'Show Active' : 'Show Deleted'}
           </button>
@@ -426,6 +426,14 @@ export default function Roles() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -449,11 +457,10 @@ export default function Roles() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded px-3 py-1 text-xs font-medium ${
-                            currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                          className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -467,6 +474,14 @@ export default function Roles() {
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

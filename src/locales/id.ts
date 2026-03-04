@@ -66,9 +66,11 @@ export const id = {
     procurements: 'Pembelian',
     disposals: 'Pembuangan',
     sales: 'Penjualan',
+    labaRugi: 'Laba Rugi',
     auditTrail: 'Riwayat Audit',
     users: 'Pengguna',
     roles: 'Peran',
+    settings: 'Pengaturan',
     productsManagement: 'Manajemen Produk',
     warehouseManagement: 'Manajemen Gudang',
     ordersManagement: 'Manajemen Pesanan',
@@ -423,6 +425,16 @@ export const id = {
     title: 'Pemantauan Stok',
     description: 'Pelacakan inventaris waktu nyata.',
   },
+  // Settings
+  settings: {
+    title: 'Pengaturan',
+    description: 'Konfigurasi preferensi aplikasi.',
+    general: 'Umum',
+    appName: 'Nama Aplikasi',
+    appNamePlaceholder: 'Masukkan nama aplikasi',
+    appNameHint: 'Nama ini akan ditampilkan di header sidebar.',
+    saved: 'Pengaturan berhasil disimpan',
+  },
   // Dashboard
   dashboard: {
     title: 'Dasbor',
@@ -446,6 +458,22 @@ export const id = {
     transactions: 'Transaksi',
     approved: 'Disetujui',
     pending: 'Menunggu',
+  },
+  // Laba Rugi
+  labaRugi: {
+    title: 'Laporan Laba Rugi',
+    description: 'Lihat pendapatan penjualan, HPP, dan laba kotor Anda dari waktu ke waktu.',
+    revenue: 'Pendapatan (Penjualan)',
+    cogs: 'HPP (Harga Pokok Penjualan)',
+    grossProfit: 'Laba Kotor',
+    procurements: 'Total Pembelian Stok (Info)',
+    dateFrom: 'Dari Tanggal',
+    dateTo: 'Sampai Tanggal',
+    filter: 'Filter',
+    dailyDetails: 'Rincian Harian',
+    date: 'Tanggal',
+    loading: 'Memuat data...',
+    noData: 'Tidak ada data untuk periode yang dipilih.',
   },
 }
 

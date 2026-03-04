@@ -51,12 +51,12 @@ export default function Categories() {
     category_id: '',
     name: '',
   })
-  
+
   // Search state
   const [categorySearchQuery, setCategorySearchQuery] = useState('')
   const [subcategorySearchQuery, setSubcategorySearchQuery] = useState('')
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null)
-  
+
   // Pagination state
   const [categoryCurrentPage, setCategoryCurrentPage] = useState(1)
   const [subcategoryCurrentPage, setSubcategoryCurrentPage] = useState(1)
@@ -65,7 +65,7 @@ export default function Categories() {
 
   const filteredCategories = useMemo(() => {
     let filtered = categories.filter((c) => (showDeleted ? true : c.deleted_at === null))
-    
+
     if (categorySearchQuery.trim()) {
       const query = categorySearchQuery.toLowerCase().trim()
       filtered = filtered.filter((c) =>
@@ -73,7 +73,7 @@ export default function Categories() {
         c.id.toString().includes(query)
       )
     }
-    
+
     return filtered
   }, [categories, showDeleted, categorySearchQuery])
 
@@ -81,7 +81,7 @@ export default function Categories() {
     let filtered = subcategories.filter((s) =>
       showDeleted ? true : s.deleted_at === null
     )
-    
+
     if (subcategorySearchQuery.trim()) {
       const query = subcategorySearchQuery.toLowerCase().trim()
       filtered = filtered.filter((s) =>
@@ -90,11 +90,11 @@ export default function Categories() {
         getCategoryName(s.category_id).toLowerCase().includes(query)
       )
     }
-    
+
     if (selectedCategoryFilter !== null) {
       filtered = filtered.filter((s) => s.category_id === selectedCategoryFilter)
     }
-    
+
     return filtered
   }, [subcategories, showDeleted, subcategorySearchQuery, selectedCategoryFilter, categories])
 
@@ -392,7 +392,7 @@ export default function Categories() {
               <p className="text-xs text-slate-500">
                 {t.common.showing} {categoryStartIndex + 1}-{Math.min(categoryEndIndex, filteredCategories.length)} {t.common.of} {filteredCategories.length} {filteredCategories.length === 1 ? 'category' : 'categories'}
               </p>
-              
+
               {/* Search */}
               <div className="relative mt-3">
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -423,16 +423,14 @@ export default function Categories() {
                 return (
                   <div
                     key={category.id}
-                    className={`px-4 py-3 ${
-                      isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
-                    }`}
+                    className={`px-4 py-3 ${isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div
-                          className={`text-sm font-medium ${
-                            isDeleted ? 'line-through text-slate-400' : ''
-                          }`}
+                          className={`text-sm font-medium ${isDeleted ? 'line-through text-slate-400' : ''
+                            }`}
                         >
                           {category.name}
                         </div>
@@ -492,7 +490,7 @@ export default function Categories() {
                 </div>
               )}
             </div>
-            
+
             {/* Categories Pagination */}
             {filteredCategories.length > 0 && (
               <div className="border-t border-slate-200 px-4 py-3">
@@ -533,6 +531,14 @@ export default function Categories() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => setCategoryCurrentPage(1)}
+                      disabled={categoryCurrentPage === 1}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      «
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setCategoryCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={categoryCurrentPage === 1}
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -556,11 +562,10 @@ export default function Categories() {
                             key={pageNum}
                             type="button"
                             onClick={() => setCategoryCurrentPage(pageNum)}
-                            className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                              categoryCurrentPage === pageNum
+                            className={`rounded-md px-3 py-1.5 text-xs font-medium ${categoryCurrentPage === pageNum
                                 ? 'bg-primary-600 text-white'
                                 : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -574,6 +579,14 @@ export default function Categories() {
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {t.common.next}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryCurrentPage(categoryTotalPages)}
+                      disabled={categoryCurrentPage === categoryTotalPages}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      »
                     </button>
                   </div>
                 </div>
@@ -590,7 +603,7 @@ export default function Categories() {
               <p className="text-xs text-slate-500">
                 {t.common.showing} {subcategoryStartIndex + 1}-{Math.min(subcategoryEndIndex, filteredSubcategories.length)} {t.common.of} {filteredSubcategories.length} {filteredSubcategories.length === 1 ? t.categories.subcategory : t.categories.subcategories}
               </p>
-              
+
               {/* Search and Filter */}
               <div className="mt-3 space-y-2">
                 <div className="relative">
@@ -643,16 +656,14 @@ export default function Categories() {
                 return (
                   <div
                     key={subcategory.id}
-                    className={`px-4 py-3 ${
-                      isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
-                    }`}
+                    className={`px-4 py-3 ${isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
+                      }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div
-                          className={`text-sm font-medium ${
-                            isDeleted ? 'line-through text-slate-400' : ''
-                          }`}
+                          className={`text-sm font-medium ${isDeleted ? 'line-through text-slate-400' : ''
+                            }`}
                         >
                           {subcategory.name}
                         </div>
@@ -715,7 +726,7 @@ export default function Categories() {
                 </div>
               )}
             </div>
-            
+
             {/* Subcategories Pagination */}
             {filteredSubcategories.length > 0 && (
               <div className="border-t border-slate-200 px-4 py-3">
@@ -756,6 +767,14 @@ export default function Categories() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
+                      onClick={() => setSubcategoryCurrentPage(1)}
+                      disabled={subcategoryCurrentPage === 1}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      «
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setSubcategoryCurrentPage((p) => Math.max(1, p - 1))}
                       disabled={subcategoryCurrentPage === 1}
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -779,11 +798,10 @@ export default function Categories() {
                             key={pageNum}
                             type="button"
                             onClick={() => setSubcategoryCurrentPage(pageNum)}
-                            className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                              subcategoryCurrentPage === pageNum
+                            className={`rounded-md px-3 py-1.5 text-xs font-medium ${subcategoryCurrentPage === pageNum
                                 ? 'bg-primary-600 text-white'
                                 : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
@@ -797,6 +815,14 @@ export default function Categories() {
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {t.common.next}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSubcategoryCurrentPage(subcategoryTotalPages)}
+                      disabled={subcategoryCurrentPage === subcategoryTotalPages}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      »
                     </button>
                   </div>
                 </div>

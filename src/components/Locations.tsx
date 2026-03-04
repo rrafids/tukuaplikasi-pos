@@ -319,26 +319,23 @@ export default function Locations() {
               return (
                 <div
                   key={location.id}
-                  className={`px-4 py-3 ${
-                    isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
-                  }`}
+                  className={`px-4 py-3 ${isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <div
-                          className={`text-sm font-medium ${
-                            isDeleted ? 'line-through text-slate-400' : ''
-                          }`}
+                          className={`text-sm font-medium ${isDeleted ? 'line-through text-slate-400' : ''
+                            }`}
                         >
                           {location.name}
                         </div>
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                            location.type === 'warehouse'
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${location.type === 'warehouse'
                               ? 'bg-primary-100 text-primary-700'
                               : 'bg-purple-100 text-purple-700'
-                          }`}
+                            }`}
                         >
                           {location.type === 'warehouse' ? '🏭' : '🛒'}{' '}
                           {location.type}
@@ -439,6 +436,14 @@ export default function Locations() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -462,11 +467,10 @@ export default function Locations() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                            currentPage === pageNum
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
                               ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -482,6 +486,14 @@ export default function Locations() {
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t.common.next}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

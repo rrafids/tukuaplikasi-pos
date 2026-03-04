@@ -66,9 +66,11 @@ export const en = {
     procurements: 'Procurements',
     disposals: 'Disposals',
     sales: 'Sales',
+    labaRugi: 'Profit & Loss',
     auditTrail: 'Audit Trail',
     users: 'Users',
     roles: 'Roles',
+    settings: 'Settings',
     productsManagement: 'Products Management',
     warehouseManagement: 'Warehouse Management',
     ordersManagement: 'Orders Management',
@@ -423,6 +425,16 @@ export const en = {
     title: 'Stock Monitoring',
     description: 'Real-time inventory tracking.',
   },
+  // Settings
+  settings: {
+    title: 'Settings',
+    description: 'Configure application preferences.',
+    general: 'General',
+    appName: 'App Name',
+    appNamePlaceholder: 'Enter app name',
+    appNameHint: 'This name will be displayed in the sidebar header.',
+    saved: 'Settings saved successfully',
+  },
   // Dashboard
   dashboard: {
     title: 'Dashboard',
@@ -446,6 +458,22 @@ export const en = {
     transactions: 'Transactions',
     approved: 'Approved',
     pending: 'Pending',
+  },
+  // Laba Rugi
+  labaRugi: {
+    title: 'Profit & Loss (Laba Rugi)',
+    description: 'View your sales revenue, cost of goods, and gross profit over time.',
+    revenue: 'Sales Revenue',
+    cogs: 'Cost of Goods Sold (HPP)',
+    grossProfit: 'Gross Profit',
+    procurements: 'Stock Purchases (Outflow)',
+    dateFrom: 'From Date',
+    dateTo: 'To Date',
+    filter: 'Filter',
+    dailyDetails: 'Daily Breakdown',
+    date: 'Date',
+    loading: 'Loading report data...',
+    noData: 'No data found for the selected period.',
   },
 }
 

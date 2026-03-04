@@ -42,7 +42,7 @@ export default function UOMs() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editingConversionId, setEditingConversionId] = useState<number | null>(null)
   const [showDeleted, setShowDeleted] = useState(false)
-  
+
   // Conversion pagination state
   const [conversionCurrentPage, setConversionCurrentPage] = useState(1)
   const [conversionItemsPerPage, setConversionItemsPerPage] = useState(10)
@@ -376,16 +376,14 @@ export default function UOMs() {
               return (
                 <div
                   key={uom.id}
-                  className={`px-4 py-3 ${
-                    isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
-                  }`}
+                  className={`px-4 py-3 ${isDeleted ? 'bg-rose-50/40' : 'hover:bg-slate-50'
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div
-                        className={`text-sm font-medium ${
-                          isDeleted ? 'line-through text-slate-400' : ''
-                        }`}
+                        className={`text-sm font-medium ${isDeleted ? 'line-through text-slate-400' : ''
+                          }`}
                       >
                         {uom.name}
                       </div>
@@ -487,6 +485,14 @@ export default function UOMs() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -510,11 +516,10 @@ export default function UOMs() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                            currentPage === pageNum
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
                               ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -530,6 +535,14 @@ export default function UOMs() {
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t.common.next}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>
@@ -644,6 +657,14 @@ export default function UOMs() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setConversionCurrentPage(1)}
+                    disabled={conversionCurrentPage === 1}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setConversionCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={conversionCurrentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -667,11 +688,10 @@ export default function UOMs() {
                           key={pageNum}
                           type="button"
                           onClick={() => setConversionCurrentPage(pageNum)}
-                          className={`rounded px-3 py-1 text-xs font-medium ${
-                            conversionCurrentPage === pageNum
+                          className={`rounded px-3 py-1 text-xs font-medium ${conversionCurrentPage === pageNum
                               ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -687,6 +707,14 @@ export default function UOMs() {
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t.common.next}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConversionCurrentPage(conversionTotalPages)}
+                    disabled={conversionCurrentPage === conversionTotalPages}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

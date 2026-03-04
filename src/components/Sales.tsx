@@ -29,6 +29,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
 import Invoice from './Invoice'
 import SearchableSelect from './SearchableSelect'
+import ProductSelectionModal from './ProductSelectionModal'
 
 type SaleItem = {
   product_id: number
@@ -49,6 +50,7 @@ type SaleFormState = {
   discount_type: 'percentage' | 'fixed' | ''
   discount_value: string
   notes: string
+  payment_method: 'cash' | 'utang'
 }
 
 export default function Sales() {
@@ -64,6 +66,7 @@ export default function Sales() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showDeleted, setShowDeleted] = useState(false)
   const [printingSale, setPrintingSale] = useState<SaleWithItems | null>(null)
+  const [selectingProductForIndex, setSelectingProductForIndex] = useState<number | null>(null)
   const [form, setForm] = useState<SaleFormState>({
     location_id: '',
     customer_name: '',
@@ -71,7 +74,10 @@ export default function Sales() {
     discount_type: '',
     discount_value: '',
     notes: '',
+    payment_method: 'cash',
   })
+
+  const [showSummary, setShowSummary] = useState(false)
 
   // Search and filter state (for history view)
   const [searchQuery, setSearchQuery] = useState('')
@@ -132,7 +138,7 @@ export default function Sales() {
         setProducts(prods.filter((p) => p.deleted_at === null))
         setLocations(locs.filter((l) => l.deleted_at === null))
         setUOMs(uomsList)
-        
+
         // Preload UOM conversions for all products
         const conversionsMap: Record<number, number[]> = {}
         for (const product of prods.filter((p) => p.deleted_at === null && p.uom_id)) {
@@ -257,6 +263,7 @@ export default function Sales() {
       discount_type: '',
       discount_value: '',
       notes: '',
+      payment_method: 'cash',
     })
 
   const openCreate = () => {
@@ -287,6 +294,7 @@ export default function Sales() {
       discount_type: sale.discount_type ?? '',
       discount_value: sale.discount_value?.toString() ?? '',
       notes: sale.notes ?? '',
+      payment_method: sale.payment_method ?? 'cash',
     })
     setShowForm(true)
   }
@@ -454,10 +462,10 @@ export default function Sales() {
             unit_price: item.unit_price,
             uom_id: item.uom_id,
           })),
-          discount_type: form.discount_type || null,
           discount_value: form.discount_value ? parseFloat(form.discount_value) : null,
           notes: form.notes.trim() || null,
           user_id: user?.id ?? null,
+          payment_method: form.payment_method,
         })
         const updatedList = await listSales()
         setSales(updatedList)
@@ -477,6 +485,7 @@ export default function Sales() {
           discount_type: form.discount_type || null,
           discount_value: form.discount_value ? parseFloat(form.discount_value) : null,
           notes: form.notes.trim() || null,
+          payment_method: form.payment_method,
         })
         if (updated) {
           const updatedList = await listSales()
@@ -546,9 +555,63 @@ export default function Sales() {
     [allSales],
   )
 
+  // Calculate Sales Summary (Rekap Penjualan Per Item)
+  const salesSummary = useMemo(() => {
+    const summary = new Map<string, { quantity: number; revenue: number }>()
+
+    filteredSales.forEach((sale) => {
+      sale.items.forEach((item) => {
+        const existing = summary.get(item.product_name)
+        if (existing) {
+          summary.set(item.product_name, {
+            quantity: existing.quantity + item.quantity,
+            revenue: existing.revenue + item.subtotal,
+          })
+        } else {
+          summary.set(item.product_name, {
+            quantity: item.quantity,
+            revenue: item.subtotal,
+          })
+        }
+      })
+    })
+
+    return Array.from(summary.entries())
+      .map(([name, data]) => ({ name, ...data }))
+      .sort((a, b) => b.revenue - a.revenue) // Sort by revenue descending
+  }, [filteredSales])
+
   const handleExportExcel = () => {
     try {
-      const exportData: Array<Record<string, unknown>> = []
+      // Create AoA (Array of Arrays) for the Excel sheet
+      const aoaData: any[][] = []
+
+      // 1. Title and Summary Section
+      aoaData.push(['REKAP PENJUALAN PER PRODUK'])
+      aoaData.push(['Product Name', 'Total Quantity Sold', 'Total Revenue'])
+
+      salesSummary.forEach((item) => {
+        aoaData.push([
+          item.name,
+          item.quantity,
+          `Rp ${item.revenue.toLocaleString('id-ID')}`
+        ])
+      })
+
+      // Add empty row separator
+      aoaData.push([])
+      aoaData.push([])
+
+      // 2. Transaction Details Section
+      aoaData.push(['DETAIL TRANSAKSI PENJUALAN'])
+
+      // Header row for transactions
+      const detailsHeader = [
+        'Date', 'Location', 'Customer', 'Location Type', 'Product', 'Quantity',
+        'Buy Price', 'Sell Price', 'Subtotal', 'Discount', 'Discount Amount',
+        'Total Amount', 'Payment Method', 'Notes'
+      ]
+      aoaData.push(detailsHeader)
 
       filteredSales.forEach((sale) => {
         const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
@@ -566,41 +629,45 @@ export default function Sales() {
             : '-'
 
         if (sale.items.length === 0) {
-          exportData.push({
-            'Sale ID': sale.id,
-            'Date': new Date(sale.created_at).toLocaleDateString('id-ID'),
-            'Location': sale.location_name,
-            'Location Type': sale.location_type,
-            'Product': '-',
-            'Quantity': '-',
-            'Unit Price': '-',
-            'Subtotal': `Rp ${subtotal.toLocaleString('id-ID')}`,
-            'Discount': discountDisplay,
-            'Discount Amount': discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-',
-            'Total Amount': `Rp ${sale.total_amount.toLocaleString('id-ID')}`,
-            'Notes': sale.notes || '-',
-          })
+          aoaData.push([
+            new Date(sale.created_at).toLocaleDateString('id-ID'),
+            sale.location_name,
+            sale.customer_name || '-',
+            sale.location_type,
+            '-', // Product
+            '-', // Quantity
+            '-', // Buy Price
+            '-', // Sell Price
+            `Rp ${subtotal.toLocaleString('id-ID')}`, // Subtotal
+            discountDisplay,
+            discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-',
+            `Rp ${sale.total_amount.toLocaleString('id-ID')}`,
+            sale.payment_method === 'utang' ? 'Utang' : 'Cash',
+            sale.notes || '-'
+          ])
         } else {
           sale.items.forEach((item, index) => {
-            exportData.push({
-              'Sale ID': index === 0 ? sale.id : '',
-              'Date': index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '',
-              'Location': index === 0 ? sale.location_name : '',
-              'Location Type': index === 0 ? sale.location_type : '',
-              'Product': item.product_name,
-              'Quantity': item.quantity,
-              'Unit Price': `Rp ${item.unit_price.toLocaleString('id-ID')}`,
-              'Subtotal': `Rp ${item.subtotal.toLocaleString('id-ID')}`,
-              'Discount': index === 0 ? discountDisplay : '',
-              'Discount Amount': index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '',
-              'Total Amount': index === 0 ? `Rp ${sale.total_amount.toLocaleString('id-ID')}` : '',
-              'Notes': index === 0 ? sale.notes || '-' : '',
-            })
+            aoaData.push([
+              index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '',
+              index === 0 ? sale.location_name : '',
+              index === 0 ? (sale.customer_name || '-') : '',
+              index === 0 ? sale.location_type : '',
+              item.product_name,
+              item.quantity,
+              products.find(p => p.id === item.product_id)?.price || 0,
+              item.unit_price,
+              `Rp ${item.subtotal.toLocaleString('id-ID')}`,
+              index === 0 ? discountDisplay : '',
+              index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '',
+              index === 0 ? `Rp ${sale.total_amount.toLocaleString('id-ID')}` : '',
+              index === 0 ? (sale.payment_method === 'utang' ? 'Utang' : 'Cash') : '',
+              index === 0 ? (sale.notes || '-') : ''
+            ])
           })
         }
       })
 
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Sales')
 
@@ -642,11 +709,10 @@ export default function Sales() {
           <button
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
-            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${
-              showDeleted
-                ? 'border-primary-300 bg-primary-50 text-primary-700'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
+            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
+              ? 'border-primary-300 bg-primary-50 text-primary-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
           >
             {showDeleted ? 'Show Active' : 'Show Deleted'}
           </button>
@@ -699,360 +765,420 @@ export default function Sales() {
 
         {/* Sales History */}
         <>
-            {/* Search and filter */}
-            <section className="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-200 p-3 md:p-4">
-                <div className="flex flex-col gap-3">
-                  {/* Search bar */}
-                  <div className="relative flex-1">
-                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder="Search by location, product, or notes..."
-                      value={searchQuery}
+          {/* Search and filter */}
+          <section className="mb-4 rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div className="border-b border-slate-200 p-3 md:p-4">
+              <div className="flex flex-col gap-3">
+                {/* Search bar */}
+                <div className="relative flex-1">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search by location, product, or notes..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      setCurrentPage(1)
+                    }}
+                    className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  />
+                </div>
+
+                {/* Filters */}
+                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
+                  <div className="relative">
+                    <select
+                      value={selectedLocationFilter ?? ''}
                       onChange={(e) => {
-                        setSearchQuery(e.target.value)
+                        setSelectedLocationFilter(
+                          e.target.value ? parseInt(e.target.value, 10) : null,
+                        )
                         setCurrentPage(1)
                       }}
-                      className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                      className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
+                    >
+                      <option value="">All Locations</option>
+                      {locations.map((location) => (
+                        <option key={location.id} value={location.id}>
+                          {location.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateFromFilter}
+                      onChange={(e) => {
+                        setDateFromFilter(e.target.value)
+                        setCurrentPage(1)
+                      }}
+                      placeholder="From Date"
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                     />
                   </div>
-
-                  {/* Filters */}
-                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
-                    <div className="relative">
-                      <select
-                        value={selectedLocationFilter ?? ''}
-                        onChange={(e) => {
-                          setSelectedLocationFilter(
-                            e.target.value ? parseInt(e.target.value, 10) : null,
-                          )
-                          setCurrentPage(1)
-                        }}
-                        className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
-                      >
-                        <option value="">All Locations</option>
-                        {locations.map((location) => (
-                          <option key={location.id} value={location.id}>
-                            {location.name}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={dateFromFilter}
-                        onChange={(e) => {
-                          setDateFromFilter(e.target.value)
-                          setCurrentPage(1)
-                        }}
-                        placeholder="From Date"
-                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
-                      />
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={dateToFilter}
-                        onChange={(e) => {
-                          setDateToFilter(e.target.value)
-                          setCurrentPage(1)
-                        }}
-                        placeholder="To Date"
-                        className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
-                      />
-                    </div>
-                    {(dateFromFilter || dateToFilter) && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDateFromFilter('')
-                          setDateToFilter('')
-                          setCurrentPage(1)
-                        }}
-                        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                      >
-                        Clear Dates
-                      </button>
-                    )}
+                  <div className="relative">
+                    <input
+                      type="date"
+                      value={dateToFilter}
+                      onChange={(e) => {
+                        setDateToFilter(e.target.value)
+                        setCurrentPage(1)
+                      }}
+                      placeholder="To Date"
+                      className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
+                    />
                   </div>
+                  {(dateFromFilter || dateToFilter) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDateFromFilter('')
+                        setDateToFilter('')
+                        setCurrentPage(1)
+                      }}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      Clear Dates
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowSummary(!showSummary)}
+                    className={`rounded-md border px-3 py-2 text-xs font-medium shadow-sm ${showSummary ? 'border-primary-300 bg-primary-50 text-primary-700' : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'}`}
+                  >
+                    {showSummary ? 'Hide Summary' : 'Show Summary'}
+                  </button>
                 </div>
               </div>
+            </div>
 
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-                    <tr>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Customer</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">User</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Items</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Subtotal</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Discount</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Total</th>
-                      <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                        Notes
-                      </th>
-                      <th className="px-3 py-2 text-right md:px-4 md:py-3">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {visibleSales.map((sale) => {
-                      const isDeleted = sale.deleted_at !== null
-                      return (
-                        <tr
-                          key={sale.id}
-                          className={
-                            isDeleted
-                              ? 'bg-rose-50/40 text-slate-400'
-                              : 'hover:bg-slate-50'
-                          }
-                        >
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                            <div className="flex flex-col">
-                              <span>
-                                {new Date(sale.created_at).toLocaleDateString('id-ID', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}
-                              </span>
-                              <span className="text-[10px] text-slate-500">
-                                {new Date(sale.created_at).toLocaleTimeString('id-ID', {
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </span>
-                            </div>
+            {/* Summary View */}
+            {showSummary && salesSummary.length > 0 && (
+              <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
+                <h3 className="mb-3 text-sm font-semibold text-slate-900">Rekap Penjualan Per Produk</h3>
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                  <table className="min-w-full divide-y divide-slate-200 text-left text-xs md:text-sm">
+                    <thead className="bg-slate-50 text-slate-500">
+                      <tr>
+                        <th className="px-4 py-2 font-medium">Product Name</th>
+                        <th className="px-4 py-2 font-medium text-right">Total Sold</th>
+                        <th className="px-4 py-2 font-medium text-right">Total Revenue</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200">
+                      {salesSummary.map((item, i) => (
+                        <tr key={i} className="hover:bg-slate-50">
+                          <td className="whitespace-nowrap px-4 py-2 font-medium text-slate-900">
+                            {item.name}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                            {sale.customer_name || '-'}
+                          <td className="whitespace-nowrap px-4 py-2 text-right text-slate-600">
+                            {item.quantity}
                           </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                            <div className="flex flex-col">
-                              <span className="font-medium">{sale.location_name}</span>
-                              <span className="text-[10px] text-slate-500">
-                                {sale.location_type}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
-                            {sale.user_name || '-'}
-                          </td>
-                          <td className="px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                            <div className="space-y-1">
-                              {sale.items.map((item) => (
-                                <div key={item.id} className="text-xs">
-                                  {item.product_name} × {item.quantity} @ Rp{' '}
-                                  {item.unit_price.toLocaleString('id-ID')}
-                                </div>
-                              ))}
-                            </div>
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                            {(() => {
-                              const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
-                              return `Rp ${subtotal.toLocaleString('id-ID')}`
-                            })()}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600 md:px-4 md:py-3 md:text-sm">
-                            {(() => {
-                              const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
-                              if (sale.discount_type && sale.discount_value !== null) {
-                                const discountAmount =
-                                  sale.discount_type === 'percentage'
-                                    ? (subtotal * sale.discount_value) / 100
-                                    : sale.discount_value
-                                return (
-                                  <div className="flex flex-col">
-                                    <span className="text-rose-600">
-                                      - Rp {discountAmount.toLocaleString('id-ID')}
-                                    </span>
-                                    <span className="text-[10px] text-slate-500">
-                                      {sale.discount_type === 'percentage'
-                                        ? `${sale.discount_value}%`
-                                        : 'Fixed'}
-                                    </span>
-                                  </div>
-                                )
-                              }
-                              return '-'
-                            })()}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-xs font-semibold text-slate-900 md:px-4 md:py-3 md:text-sm">
-                            Rp {sale.total_amount.toLocaleString('id-ID')}
-                          </td>
-                          <td className="hidden max-w-xs truncate px-3 py-2 text-xs text-slate-500 md:table-cell md:px-4 md:py-3 md:text-sm">
-                            {sale.notes || '-'}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
-                            <div className="inline-flex items-center gap-1">
-                              {!isDeleted && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => setPrintingSale(sale)}
-                                    className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
-                                    title="Print Invoice"
-                                  >
-                                    <PrinterIcon className="h-3 w-3" />
-                                    Print
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => openEdit(sale)}
-                                    className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                                  >
-                                    Edit
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleDelete(sale)}
-                                    className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
-                                  >
-                                    Delete
-                                  </button>
-                                </>
-                              )}
-                              {isDeleted && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleRestore(sale)}
-                                  className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
-                                >
-                                  Restore
-                                </button>
-                              )}
-                            </div>
+                          <td className="whitespace-nowrap px-4 py-2 text-right font-medium text-emerald-600">
+                            Rp {item.revenue.toLocaleString('id-ID')}
                           </td>
                         </tr>
-                      )
-                    })}
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
-                    {visibleSales.length === 0 && (
-                      <tr>
-                        <td
-                          colSpan={9}
-                          className="px-4 py-8 text-center text-xs text-slate-500"
-                        >
-                          {searchQuery ||
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Customer</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">User</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Subtotal</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Discount</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Total</th>
+                    <th className="px-3 py-2 md:px-4 md:py-3">Payment</th>
+                    <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
+                      Notes
+                    </th>
+                    <th className="px-3 py-2 text-right md:px-4 md:py-3">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {visibleSales.map((sale) => {
+                    const isDeleted = sale.deleted_at !== null
+                    return (
+                      <tr
+                        key={sale.id}
+                        className={
+                          isDeleted
+                            ? 'bg-rose-50/40 text-slate-400'
+                            : 'hover:bg-slate-50'
+                        }
+                      >
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          <div className="flex flex-col">
+                            <span>
+                              {new Date(sale.created_at).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              {new Date(sale.created_at).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          {sale.customer_name || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          <div className="flex flex-col">
+                            <span className="font-medium">{sale.location_name}</span>
+                            <span className="text-[10px] text-slate-500">
+                              {sale.location_type}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
+                          {sale.user_name || '-'}
+                        </td>
+                        <td className="px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          <div className="space-y-1">
+                            {sale.items.map((item) => (
+                              <div key={item.id} className="text-xs">
+                                {item.product_name} × {item.quantity} @ Rp{' '}
+                                {item.unit_price.toLocaleString('id-ID')}
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          {(() => {
+                            const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
+                            return `Rp ${subtotal.toLocaleString('id-ID')}`
+                          })()}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-600 md:px-4 md:py-3 md:text-sm">
+                          {(() => {
+                            const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
+                            if (sale.discount_type && sale.discount_value !== null) {
+                              const discountAmount =
+                                sale.discount_type === 'percentage'
+                                  ? (subtotal * sale.discount_value) / 100
+                                  : sale.discount_value
+                              return (
+                                <div className="flex flex-col">
+                                  <span className="text-rose-600">
+                                    - Rp {discountAmount.toLocaleString('id-ID')}
+                                  </span>
+                                  <span className="text-[10px] text-slate-500">
+                                    {sale.discount_type === 'percentage'
+                                      ? `${sale.discount_value}%`
+                                      : 'Fixed'}
+                                  </span>
+                                </div>
+                              )
+                            }
+                            return '-'
+                          })()}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs font-semibold text-slate-900 md:px-4 md:py-3 md:text-sm">
+                          Rp {sale.total_amount.toLocaleString('id-ID')}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs md:px-4 md:py-3 md:text-sm">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${sale.payment_method === 'utang' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}`}>
+                            {sale.payment_method === 'utang' ? 'Utang' : 'Cash'}
+                          </span>
+                        </td>
+                        <td className="hidden max-w-xs truncate px-3 py-2 text-xs text-slate-500 md:table-cell md:px-4 md:py-3 md:text-sm">
+                          {sale.notes || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
+                          <div className="inline-flex items-center gap-1">
+                            {!isDeleted && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => setPrintingSale(sale)}
+                                  className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
+                                  title="Print Invoice"
+                                >
+                                  <PrinterIcon className="h-3 w-3" />
+                                  Print
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openEdit(sale)}
+                                  className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDelete(sale)}
+                                  className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
+                            {isDeleted && (
+                              <button
+                                type="button"
+                                onClick={() => handleRestore(sale)}
+                                className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
+                              >
+                                Restore
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+
+                  {visibleSales.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={9}
+                        className="px-4 py-8 text-center text-xs text-slate-500"
+                      >
+                        {searchQuery ||
                           selectedLocationFilter !== null ||
                           dateFromFilter ||
                           dateToFilter
-                            ? 'No sales match your search or filter criteria.'
-                            : 'No sales found. Click '}
-                          {!searchQuery &&
-                            selectedLocationFilter === null &&
-                            !dateFromFilter &&
-                            !dateToFilter && (
-                              <>
-                                <span className="font-medium text-slate-900">
-                                  New Sale
-                                </span>{' '}
-                                to create one.
-                              </>
-                            )}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                          ? 'No sales match your search or filter criteria.'
+                          : 'No sales found. Click '}
+                        {!searchQuery &&
+                          selectedLocationFilter === null &&
+                          !dateFromFilter &&
+                          !dateToFilter && (
+                            <>
+                              <span className="font-medium text-slate-900">
+                                New Sale
+                              </span>{' '}
+                              to create one.
+                            </>
+                          )}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-              {/* Pagination */}
-              {filteredSales.length > 0 && (
-                <div className="border-t border-slate-200 px-4 py-3">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="text-xs text-slate-500">
-                        Showing{' '}
-                        <span className="font-medium text-slate-900">
-                          {(currentPage - 1) * itemsPerPage + 1}
-                        </span>{' '}
-                        to{' '}
-                        <span className="font-medium text-slate-900">
-                          {Math.min(currentPage * itemsPerPage, filteredSales.length)}
-                        </span>{' '}
-                        of{' '}
-                        <span className="font-medium text-slate-900">
-                          {filteredSales.length}
-                        </span>{' '}
-                        results
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <label className="text-xs text-slate-500">Items per page:</label>
-                        <select
-                          value={itemsPerPage}
-                          onChange={(e) => {
-                            setItemsPerPage(Number(e.target.value))
-                            setCurrentPage(1)
-                          }}
-                          className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                        >
-                          <option value={10}>10</option>
-                          <option value={25}>25</option>
-                          <option value={50}>50</option>
-                          <option value={100}>100</option>
-                        </select>
-                      </div>
+            {/* Pagination */}
+            {filteredSales.length > 0 && (
+              <div className="border-t border-slate-200 px-4 py-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-slate-500">
+                      Showing{' '}
+                      <span className="font-medium text-slate-900">
+                        {(currentPage - 1) * itemsPerPage + 1}
+                      </span>{' '}
+                      to{' '}
+                      <span className="font-medium text-slate-900">
+                        {Math.min(currentPage * itemsPerPage, filteredSales.length)}
+                      </span>{' '}
+                      of{' '}
+                      <span className="font-medium text-slate-900">
+                        {filteredSales.length}
+                      </span>{' '}
+                      results
                     </div>
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      <label className="text-xs text-slate-500">Items per page:</label>
+                      <select
+                        value={itemsPerPage}
+                        onChange={(e) => {
+                          setItemsPerPage(Number(e.target.value))
+                          setCurrentPage(1)
+                        }}
+                        className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                       >
-                        Previous
-                      </button>
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let pageNum: number
-                          if (totalPages <= 5) {
-                            pageNum = i + 1
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i
-                          } else {
-                            pageNum = currentPage - 2 + i
-                          }
-                          return (
-                            <button
-                              key={pageNum}
-                              type="button"
-                              onClick={() => setCurrentPage(pageNum)}
-                              className={`rounded px-3 py-1 text-xs font-medium ${
-                                currentPage === pageNum
-                                  ? 'bg-primary-600 text-white'
-                                  : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                              }`}
-                            >
-                              {pageNum}
-                            </button>
-                          )
-                        })}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setCurrentPage((p) => Math.min(totalPages, p + 1))
-                        }
-                        disabled={currentPage === totalPages}
-                        className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Next
-                      </button>
+                        <option value={10}>10</option>
+                        <option value={25}>25</option>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                      </select>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(1)}
+                      disabled={currentPage === 1}
+                      className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      «
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Previous
+                    </button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum: number
+                        if (totalPages <= 5) {
+                          pageNum = i + 1
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i
+                        } else {
+                          pageNum = currentPage - 2 + i
+                        }
+                        return (
+                          <button
+                            key={pageNum}
+                            type="button"
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
+                              ? 'bg-primary-600 text-white'
+                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                              }`}
+                          >
+                            {pageNum}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      disabled={currentPage === totalPages}
+                      className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Next
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPage(totalPages)}
+                      disabled={currentPage === totalPages}
+                      className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      »
+                    </button>
+                  </div>
                 </div>
-              )}
-            </section>
+              </div>
+            )}
+          </section>
         </>
       </main>
 
@@ -1148,25 +1274,20 @@ export default function Sales() {
                             <label className="text-[10px] font-medium text-slate-600">
                               Product <span className="text-rose-500">*</span>
                             </label>
-                            <SearchableSelect
-                              options={availableProducts.map((product) => ({
-                                value: product.id,
-                                label: product.name,
-                              }))}
-                              value={item.product_id || null}
-                              onChange={(val) =>
-                                updateItem(
-                                  index,
-                                  'product_id',
-                                  val ? String(val) : '0',
-                                )
-                              }
-                              placeholder={form.location_id ? "Select product" : "Select location first"}
-                              required
-                              searchPlaceholder="Search product..."
-                              className="text-xs"
+                            <button
+                              type="button"
+                              onClick={() => setSelectingProductForIndex(index)}
                               disabled={!form.location_id}
-                            />
+                              className={`w-full flex items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-xs shadow-sm hover:bg-slate-50 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 ${!form.location_id ? 'cursor-not-allowed opacity-50 bg-slate-50' : ''} ${!item.product_id ? 'text-slate-500' : 'text-slate-900 font-medium'}`}
+                            >
+                              <span className="truncate">
+                                {item.product_id > 0
+                                  ? item.product_name
+                                  : (form.location_id ? "Select product..." : "Select location first")
+                                }
+                              </span>
+                              <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-slate-400" />
+                            </button>
                             {item.product_id > 0 && (
                               <p className="text-[10px] text-slate-500">
                                 Stock: {item.available_stock}
@@ -1186,19 +1307,19 @@ export default function Sales() {
                             <SearchableSelect
                               options={(() => {
                                 const baseOptions = [{ value: '', label: 'Use product UOM' }]
-                                
+
                                 if (!item.product_uom_id) {
                                   return baseOptions
                                 }
-                                
+
                                 // Get available UOM IDs for this product's base UOM
                                 const availableUomIds = uomConversionsMap[item.product_uom_id] || [item.product_uom_id]
-                                
+
                                 // Filter UOMs to only show those with conversions
-                                const availableUoms = uoms.filter((uom) => 
+                                const availableUoms = uoms.filter((uom) =>
                                   availableUomIds.includes(uom.id)
                                 )
-                                
+
                                 return [
                                   ...baseOptions,
                                   ...availableUoms.map((uom) => ({
@@ -1251,14 +1372,13 @@ export default function Sales() {
                               Unit Price <span className="text-rose-500">*</span>
                             </label>
                             <input
-                              type="number"
-                              min={0}
-                              step="0.01"
+                              type="text"
                               required
-                              value={item.unit_price}
-                              onChange={(e) =>
-                                updateItem(index, 'unit_price', e.target.value)
-                              }
+                              value={item.unit_price === 0 ? '' : item.unit_price.toLocaleString('id-ID')}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '')
+                                updateItem(index, 'unit_price', val ? parseFloat(val) : 0)
+                              }}
                               className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                             />
                           </div>
@@ -1346,6 +1466,20 @@ export default function Sales() {
                   />
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700">
+                    Payment Method
+                  </label>
+                  <select
+                    value={form.payment_method}
+                    onChange={(e) => setForm({ ...form, payment_method: e.target.value as 'cash' | 'utang' })}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  >
+                    <option value="cash">Cash / Tunai</option>
+                    <option value="utang">Utang / Credit</option>
+                  </select>
+                </div>
+
                 <div className="space-y-2 rounded-lg border border-primary-200 bg-primary-50 p-3">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-primary-900">
@@ -1397,6 +1531,21 @@ export default function Sales() {
           </div>
         </div>
       )}
+
+      {/* Product Selection Modal */}
+      <ProductSelectionModal
+        isOpen={selectingProductForIndex !== null}
+        onClose={() => setSelectingProductForIndex(null)}
+        onSelect={(productId) => {
+          if (selectingProductForIndex !== null) {
+            updateItem(selectingProductForIndex, 'product_id', productId)
+            setSelectingProductForIndex(null)
+          }
+        }}
+        products={availableProducts}
+        productStocks={productStocks}
+        uoms={uoms}
+      />
 
       {/* Invoice Modal */}
       {printingSale && (

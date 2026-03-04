@@ -48,6 +48,7 @@ type ProcurementFormState = {
   uom_id: string
   product_uom_id: number | null
   converted_quantity: number | null
+  payment_method: 'cash' | 'utang'
 }
 
 export default function Procurements() {
@@ -72,6 +73,7 @@ export default function Procurements() {
     uom_id: '',
     product_uom_id: null,
     converted_quantity: null,
+    payment_method: 'cash',
   })
 
   // Search and filter state
@@ -204,6 +206,7 @@ export default function Procurements() {
       uom_id: '',
       product_uom_id: null,
       converted_quantity: null,
+      payment_method: 'cash',
     })
 
   const openCreate = () => {
@@ -226,6 +229,7 @@ export default function Procurements() {
       uom_id: procurement.uom_id?.toString() ?? '',
       product_uom_id: product?.uom_id ?? null,
       converted_quantity: null,
+      payment_method: procurement.payment_method ?? 'cash',
     })
     setShowForm(true)
   }
@@ -257,6 +261,7 @@ export default function Procurements() {
           pic: form.pic.trim() || null,
           notes: form.notes.trim() || null,
           uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
+          payment_method: form.payment_method,
         })
         // Reload procurements to get updated data with joins
         const updatedList = await listProcurements()
@@ -272,6 +277,7 @@ export default function Procurements() {
           pic: form.pic.trim() || null,
           notes: form.notes.trim() || null,
           uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
+          payment_method: form.payment_method,
         })
         if (updated) {
           // Reload procurements to get updated data with joins
@@ -466,6 +472,7 @@ export default function Procurements() {
           'Total': p.unit_price ? `Rp ${total.toLocaleString('id-ID')}` : '-',
           'Supplier': p.supplier || '-',
           'Status': p.status.charAt(0).toUpperCase() + p.status.slice(1),
+          'Payment': p.payment_method === 'utang' ? 'Utang' : 'Cash',
           'Notes': p.notes || '-',
           'Created At': new Date(p.created_at).toLocaleString('id-ID'),
           'Updated At': new Date(p.updated_at).toLocaleString('id-ID'),
@@ -520,8 +527,8 @@ export default function Procurements() {
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
-                ? 'border-primary-300 bg-primary-50 text-primary-700'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              ? 'border-primary-300 bg-primary-50 text-primary-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
             {showDeleted ? t.common.showActive : t.common.showDeleted}
@@ -549,8 +556,8 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'all'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
               All
@@ -562,8 +569,8 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'approval'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
               Approval
@@ -575,8 +582,8 @@ export default function Procurements() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'completed'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
               Completed
@@ -725,8 +732,8 @@ export default function Procurements() {
                     }}
                     disabled={isStatusFilterLocked}
                     className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm ${isStatusFilterLocked
-                        ? 'cursor-not-allowed bg-slate-100 opacity-60'
-                        : ''
+                      ? 'cursor-not-allowed bg-slate-100 opacity-60'
+                      : ''
                       }`}
                   >
                     <option value="all">All Status</option>
@@ -790,6 +797,7 @@ export default function Procurements() {
                   <th className="px-3 py-2 md:px-4 md:py-3">Supplier</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">PIC</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">Status</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">Payment</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
                     Notes
                   </th>
@@ -860,6 +868,11 @@ export default function Procurements() {
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 md:px-4 md:py-3">
                         {getStatusBadge(procurement.status)}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-2 text-xs md:px-4 md:py-3 md:text-sm">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${procurement.payment_method === 'utang' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}`}>
+                          {procurement.payment_method === 'utang' ? 'Utang' : 'Cash'}
+                        </span>
                       </td>
                       <td className="hidden max-w-xs truncate px-3 py-2 text-xs text-slate-500 md:table-cell md:px-4 md:py-3 md:text-sm">
                         {procurement.notes || '-'}
@@ -995,6 +1008,14 @@ export default function Procurements() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1019,8 +1040,8 @@ export default function Procurements() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -1037,6 +1058,14 @@ export default function Procurements() {
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

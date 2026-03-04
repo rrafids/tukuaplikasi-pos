@@ -31,6 +31,7 @@ export const AVAILABLE_VIEWS = [
   'procurements',
   'disposals',
   'sales',
+  'laba-rugi',
   'stock-movements',
   'stock-monitoring',
   'stock-opname',

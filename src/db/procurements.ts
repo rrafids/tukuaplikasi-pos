@@ -18,6 +18,7 @@ export type ProcurementRow = {
   notes: string | null
   status: ProcurementStatus
   uom_id: number | null
+  payment_method: 'cash' | 'utang'
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -68,6 +69,7 @@ async function getDb() {
           notes TEXT,
           status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
           uom_id INTEGER,
+          payment_method TEXT DEFAULT 'cash' CHECK(payment_method IN ('cash', 'utang')),
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           deleted_at TEXT,
@@ -99,6 +101,13 @@ async function getDb() {
       } catch (error) {
         // Column already exists, ignore
         console.log('[DB] Status column already exists or error adding it:', error)
+      }
+
+      // Add payment_method column if it doesn't exist (for existing databases)
+      try {
+        await db.execute(`ALTER TABLE procurements ADD COLUMN payment_method TEXT DEFAULT 'cash' CHECK(payment_method IN ('cash', 'utang'))`)
+      } catch (error) {
+        console.log('[DB] Payment method column already exists or error adding it:', error)
       }
 
       console.log('[DB] Procurements table created/verified successfully')
@@ -143,6 +152,7 @@ export async function listProcurements(): Promise<
         pr.notes,
         pr.status,
         pr.uom_id,
+        pr.payment_method,
         pr.created_at,
         pr.updated_at,
         pr.deleted_at,
@@ -171,6 +181,7 @@ export async function createProcurement(input: {
   pic?: string | null
   notes?: string | null
   uom_id?: number | null
+  payment_method?: 'cash' | 'utang'
 }): Promise<ProcurementRow> {
   try {
     const db = await getDb()
@@ -184,9 +195,9 @@ export async function createProcurement(input: {
     // Create the procurement record with status 'pending' (stock not updated yet)
     await db.execute(
       `INSERT INTO procurements (
-        product_id, location_id, quantity, unit_price, supplier, pic, notes, status, uom_id,
+        product_id, location_id, quantity, unit_price, supplier, pic, notes, status, uom_id, payment_method,
         created_at, updated_at, deleted_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NULL)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NULL)`,
       [
         input.product_id,
         input.location_id,
@@ -197,6 +208,7 @@ export async function createProcurement(input: {
         input.notes?.trim() || null,
         'pending',
         input.uom_id ?? null,
+        input.payment_method ?? 'cash',
         now,
         now,
       ],
@@ -425,6 +437,7 @@ export async function updateProcurement(
     notes?: string | null
     status?: ProcurementStatus
     uom_id?: number | null
+    payment_method?: 'cash' | 'utang'
   },
 ): Promise<ProcurementRow | null> {
   try {
@@ -560,6 +573,10 @@ export async function updateProcurement(
     if (input.uom_id !== undefined) {
       updateFields.push(`uom_id = $${paramIndex++}`)
       updateValues.push(input.uom_id ?? null)
+    }
+    if (input.payment_method !== undefined) {
+      updateFields.push(`payment_method = $${paramIndex++}`)
+      updateValues.push(input.payment_method)
     }
 
     updateFields.push(`updated_at = $${paramIndex++}`)

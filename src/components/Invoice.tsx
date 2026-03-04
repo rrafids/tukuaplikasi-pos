@@ -159,8 +159,8 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                 <span className="print:font-medium">{sale.customer_name || 'Walk-in'}</span>
               </div>
               <div className="flex justify-between text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">Location:</span>
-                <span className="print:font-medium">{sale.location_name}</span>
+                <span className="font-semibold print:font-bold">Cashier:</span>
+                <span className="print:font-medium">{sale.user_name || '-'}</span>
               </div>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
@@ -266,7 +266,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
 
             {/* Footer */}
             <div className="mt-4 border-t-2 border-slate-900 pt-2 text-center text-xs text-slate-700 print:mt-2 print:border-t-2 print:pt-1 print:text-[9pt] print:font-medium">
-              <p className="print:font-semibold">Thank you for your business!</p>
+              <p className="print:font-semibold">Thank you for shopping with us!</p>
               <p className="mt-1 print:mt-0.5 print:font-normal">Computer-generated receipt</p>
             </div>
           </div>

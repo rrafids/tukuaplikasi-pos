@@ -646,11 +646,11 @@ export default function StockMovements() {
                       className="px-4 py-8 text-center text-xs text-slate-500"
                     >
                       {searchQuery ||
-                      selectedProductFilter !== null ||
-                      selectedLocationFilter !== null ||
-                      selectedTypeFilter !== 'all' ||
-                      dateFromFilter ||
-                      dateToFilter
+                        selectedProductFilter !== null ||
+                        selectedLocationFilter !== null ||
+                        selectedTypeFilter !== 'all' ||
+                        dateFromFilter ||
+                        dateToFilter
                         ? 'No stock movements match your search or filter criteria.'
                         : 'No stock movements found.'}
                     </td>
@@ -700,6 +700,14 @@ export default function StockMovements() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -723,11 +731,10 @@ export default function StockMovements() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded px-3 py-1 text-xs font-medium ${
-                            currentPage === pageNum
+                          className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
                               ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -743,6 +750,14 @@ export default function StockMovements() {
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

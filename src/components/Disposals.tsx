@@ -466,11 +466,10 @@ export default function Disposals() {
           <button
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
-            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${
-              showDeleted
+            className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
                 ? 'border-primary-300 bg-primary-50 text-primary-700'
                 : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-            }`}
+              }`}
           >
             {showDeleted ? t.common.showActive : t.common.showDeleted}
           </button>
@@ -496,11 +495,10 @@ export default function Disposals() {
                 setActiveTab('all')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${
-                activeTab === 'all'
+              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'all'
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              }`}
+                }`}
             >
               All
             </button>
@@ -510,11 +508,10 @@ export default function Disposals() {
                 setActiveTab('approval')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${
-                activeTab === 'approval'
+              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'approval'
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              }`}
+                }`}
             >
               Approval
             </button>
@@ -524,11 +521,10 @@ export default function Disposals() {
                 setActiveTab('completed')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${
-                activeTab === 'completed'
+              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'completed'
                   ? 'border-primary-500 text-primary-600'
                   : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              }`}
+                }`}
             >
               Completed
             </button>
@@ -667,11 +663,10 @@ export default function Disposals() {
                       }
                     }}
                     disabled={isStatusFilterLocked}
-                    className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm ${
-                      isStatusFilterLocked
+                    className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm ${isStatusFilterLocked
                         ? 'cursor-not-allowed bg-slate-100 opacity-60'
                         : ''
-                    }`}
+                      }`}
                   >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
@@ -859,11 +854,11 @@ export default function Disposals() {
                       className="px-4 py-8 text-center text-xs text-slate-500"
                     >
                       {searchQuery ||
-                      selectedProductFilter !== null ||
-                      selectedLocationFilter !== null ||
-                      selectedStatusFilter !== 'all' ||
-                      dateFromFilter ||
-                      dateToFilter
+                        selectedProductFilter !== null ||
+                        selectedLocationFilter !== null ||
+                        selectedStatusFilter !== 'all' ||
+                        dateFromFilter ||
+                        dateToFilter
                         ? 'No disposals match your search or filter criteria.'
                         : 'No disposals found. Click '}
                       {!searchQuery &&
@@ -926,6 +921,14 @@ export default function Disposals() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -949,11 +952,10 @@ export default function Disposals() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded px-3 py-1 text-xs font-medium ${
-                            currentPage === pageNum
+                          className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
                               ? 'bg-primary-600 text-white'
                               : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -969,6 +971,14 @@ export default function Disposals() {
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>

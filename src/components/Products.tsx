@@ -215,9 +215,9 @@ export default function Products() {
 
   const handleChange =
     (field: keyof ProductFormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }))
-    }
+      (e: React.ChangeEvent<HTMLInputElement>) => {
+        setForm((prev) => ({ ...prev, [field]: e.target.value }))
+      }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -539,10 +539,10 @@ export default function Products() {
               setBulkUploadProgress((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      processed: prev.processed + 1,
-                      success: prev.success + 1,
-                    }
+                    ...prev,
+                    processed: prev.processed + 1,
+                    success: prev.success + 1,
+                  }
                   : null,
               )
             } catch (error) {
@@ -554,10 +554,10 @@ export default function Products() {
               setBulkUploadProgress((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      processed: prev.processed + 1,
-                      errors: prev.errors + 1,
-                    }
+                    ...prev,
+                    processed: prev.processed + 1,
+                    errors: prev.errors + 1,
+                  }
                   : null,
               )
               console.error(
@@ -640,6 +640,56 @@ export default function Products() {
     } catch (error) {
       console.error('[Products] Error importing Excel:', error)
       toast.error(t.products.failedToImport)
+    }
+  }
+
+  const handleExportExcel = () => {
+    try {
+      const exportData = filteredProducts.map((product) => {
+        const uomName = product.uom_id ? uoms.find((u) => u.id === product.uom_id)?.abbreviation ?? '-' : '-'
+        const subcategoryNames = productSubcategoriesMap[product.id]?.map((sub) => sub.name).join(', ') || '-'
+        const isDeleted = product.deleted_at !== null ? 'Yes' : 'No'
+
+        let locationStocksString = ''
+        if (productLocationStocksMap[product.id]?.length > 0) {
+          locationStocksString = productLocationStocksMap[product.id]
+            .map(stock => `${stock.location_name}: ${stock.stock}`)
+            .join(' | ')
+        } else {
+          locationStocksString = '-'
+        }
+
+        const totalStock = productLocationStocksMap[product.id]?.reduce((sum, stock) => sum + stock.stock, 0) || 0
+
+        return {
+          'ID': product.id,
+          'Name': product.name,
+          'Price': product.price,
+          'Barcode': product.barcode || '-',
+          'UOM': uomName,
+          'Categories': subcategoryNames,
+          'Total Stock': totalStock,
+          'Stocks per Location': locationStocksString,
+          'Status': isDeleted === 'Yes' ? 'Deleted' : 'Active',
+          'Created At': new Date(product.created_at).toLocaleString('id-ID'),
+          'Updated At': new Date(product.updated_at).toLocaleString('id-ID'),
+        }
+      })
+
+      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Products')
+
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      const filename = `products_${dateStr}.xlsx`
+
+      XLSX.writeFile(wb, filename)
+
+      toast.success(`Exported ${filteredProducts.length} products to ${filename}`)
+    } catch (error) {
+      console.error('[Products] Error exporting to Excel:', error)
+      toast.error('Failed to export products to Excel.')
     }
   }
 
@@ -749,6 +799,14 @@ export default function Products() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            <span>Export</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowBulkUpload(true)}
@@ -881,13 +939,13 @@ export default function Products() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                      <th className="px-3 py-2 md:px-4 md:py-3">ID</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Name</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">Price</th>
-                      <th className="px-3 py-2 md:px-4 md:py-3">UOM</th>
-                      <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                        Created
-                      </th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">ID</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">Name</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">Price</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">UOM</th>
+                  <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
+                    Created
+                  </th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
                     Updated
                   </th>
@@ -909,174 +967,174 @@ export default function Products() {
                             : 'hover:bg-slate-50'
                         }
                       >
-                      <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
-                        #{product.id}
-                      </td>
-                      <td className="max-w-xs px-3 py-2 text-xs font-medium text-slate-900 md:px-4 md:py-3 md:text-sm">
-                        <div
-                          className={
-                            isDeleted ? 'line-through text-slate-400' : ''
-                          }
-                        >
-                          {product.name}
-                        </div>
-                        {isDeleted && (
-                          <div className="mt-0.5 text-[10px] uppercase tracking-wide text-rose-500">
-                            Deleted
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
+                          #{product.id}
+                        </td>
+                        <td className="max-w-xs px-3 py-2 text-xs font-medium text-slate-900 md:px-4 md:py-3 md:text-sm">
+                          <div
+                            className={
+                              isDeleted ? 'line-through text-slate-400' : ''
+                            }
+                          >
+                            {product.name}
                           </div>
-                        )}
-                        {!isDeleted &&
-                          productSubcategoriesMap[product.id]?.length > 0 && (
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              {productSubcategoriesMap[product.id].map(
-                                (sub) => (
-                                  <span
-                                    key={sub.id}
-                                    className="inline-flex items-center rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700"
-                                  >
-                                    {sub.name}
-                                  </span>
-                                ),
-                              )}
-                            </div>
-                          )}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                        Rp {product.price.toLocaleString('id-ID')}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
-                        {product.uom_id
-                          ? uoms.find((u) => u.id === product.uom_id)?.abbreviation ?? '-'
-                          : '-'}
-                      </td>
-                      <td className="hidden whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:table-cell">
-                        <div className="flex flex-col">
-                          <span>
-                            {new Date(product.created_at).toLocaleDateString('id-ID', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(product.created_at).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="hidden whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:table-cell">
-                        <div className="flex flex-col">
-                          <span>
-                            {new Date(product.updated_at).toLocaleDateString('id-ID', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                            })}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(product.updated_at).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
-                        <div className="inline-flex items-center gap-1">
-                          {!isDeleted && (
-                            <>
-                              {productLocationStocksMap[product.id]?.length > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setExpandedProductId(
-                                      expandedProductId === product.id ? null : product.id,
-                                    )
-                                  }
-                                  className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                                  title="View location stocks"
-                                >
-                                  {expandedProductId === product.id ? (
-                                    <ChevronDownIcon className="h-3 w-3" />
-                                  ) : (
-                                    <ChevronRightIcon className="h-3 w-3" />
-                                  )}
-                                </button>
-                              )}
-                              {product.barcode && (
-                                <button
-                                  type="button"
-                                  onClick={() => setPrintingBarcode(product)}
-                                  className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
-                                  title={t.products.printBarcode}
-                                >
-                                  <PrinterIcon className="h-3 w-3" />
-                                  {t.products.barcode}
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => openEdit(product)}
-                                className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleSoftDelete(product)}
-                                className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
-                              >
-                                {t.common.delete}
-                              </button>
-                            </>
-                          )}
                           {isDeleted && (
-                            <button
-                              type="button"
-                              onClick={() => handleRestore(product)}
-                              className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
-                            >
-                              {t.common.restore}
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                    {!isDeleted &&
-                      expandedProductId === product.id &&
-                      productLocationStocksMap[product.id]?.length > 0 && (
-                        <tr key={`${product.id}-expanded`}>
-                          <td colSpan={7} className="bg-slate-50 px-4 py-3">
-                            <div className="rounded-lg border border-slate-200 bg-white p-3">
-                              <div className="mb-2 text-xs font-semibold text-slate-700">
-                                Location Stocks
-                              </div>
-                              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                                {productLocationStocksMap[product.id].map((stock) => (
-                                  <div
-                                    key={stock.location_id}
-                                    className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
-                                  >
-                                    <div>
-                                      <div className="text-xs font-medium text-slate-900">
-                                        {stock.location_name}
-                                      </div>
-                                      <div className="text-[10px] text-slate-500">
-                                        {stock.location_type}
-                                      </div>
-                                    </div>
-                                    <div className="text-sm font-semibold text-slate-900">
-                                      {stock.stock.toLocaleString('id-ID')}
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
+                            <div className="mt-0.5 text-[10px] uppercase tracking-wide text-rose-500">
+                              Deleted
                             </div>
-                          </td>
-                        </tr>
-                      )}
+                          )}
+                          {!isDeleted &&
+                            productSubcategoriesMap[product.id]?.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {productSubcategoriesMap[product.id].map(
+                                  (sub) => (
+                                    <span
+                                      key={sub.id}
+                                      className="inline-flex items-center rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700"
+                                    >
+                                      {sub.name}
+                                    </span>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          Rp {product.price.toLocaleString('id-ID')}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
+                          {product.uom_id
+                            ? uoms.find((u) => u.id === product.uom_id)?.abbreviation ?? '-'
+                            : '-'}
+                        </td>
+                        <td className="hidden whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:table-cell">
+                          <div className="flex flex-col">
+                            <span>
+                              {new Date(product.created_at).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(product.created_at).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="hidden whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:table-cell">
+                          <div className="flex flex-col">
+                            <span>
+                              {new Date(product.updated_at).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              })}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(product.updated_at).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
+                          <div className="inline-flex items-center gap-1">
+                            {!isDeleted && (
+                              <>
+                                {productLocationStocksMap[product.id]?.length > 0 && (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedProductId(
+                                        expandedProductId === product.id ? null : product.id,
+                                      )
+                                    }
+                                    className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                    title="View location stocks"
+                                  >
+                                    {expandedProductId === product.id ? (
+                                      <ChevronDownIcon className="h-3 w-3" />
+                                    ) : (
+                                      <ChevronRightIcon className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                )}
+                                {product.barcode && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setPrintingBarcode(product)}
+                                    className="inline-flex items-center gap-1 rounded border border-primary-200 px-2 py-1 text-xs font-medium text-primary-600 hover:bg-primary-50"
+                                    title={t.products.printBarcode}
+                                  >
+                                    <PrinterIcon className="h-3 w-3" />
+                                    {t.products.barcode}
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => openEdit(product)}
+                                  className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleSoftDelete(product)}
+                                  className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                                >
+                                  {t.common.delete}
+                                </button>
+                              </>
+                            )}
+                            {isDeleted && (
+                              <button
+                                type="button"
+                                onClick={() => handleRestore(product)}
+                                className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
+                              >
+                                {t.common.restore}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {!isDeleted &&
+                        expandedProductId === product.id &&
+                        productLocationStocksMap[product.id]?.length > 0 && (
+                          <tr key={`${product.id}-expanded`}>
+                            <td colSpan={7} className="bg-slate-50 px-4 py-3">
+                              <div className="rounded-lg border border-slate-200 bg-white p-3">
+                                <div className="mb-2 text-xs font-semibold text-slate-700">
+                                  Location Stocks
+                                </div>
+                                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                                  {productLocationStocksMap[product.id].map((stock) => (
+                                    <div
+                                      key={stock.location_id}
+                                      className="flex items-center justify-between rounded-md border border-slate-200 bg-slate-50 px-3 py-2"
+                                    >
+                                      <div>
+                                        <div className="text-xs font-medium text-slate-900">
+                                          {stock.location_name}
+                                        </div>
+                                        <div className="text-[10px] text-slate-500">
+                                          {stock.location_type}
+                                        </div>
+                                      </div>
+                                      <div className="text-sm font-semibold text-slate-900">
+                                        {stock.stock.toLocaleString('id-ID')}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
                     </>
                   )
                 })}
@@ -1145,6 +1203,14 @@ export default function Products() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1168,11 +1234,10 @@ export default function Products() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                            currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -1189,6 +1254,14 @@ export default function Products() {
                   >
                     Next
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
+                  </button>
                 </div>
               </div>
             </div>
@@ -1199,8 +1272,8 @@ export default function Products() {
       {/* Slide-over form */}
       {showForm && (
         <div className="fixed inset-0 z-20 flex items-center justify-end bg-black/20">
-          <div className="h-full w-full max-w-md border-l border-slate-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+          <div className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 md:text-base">
                   {editingProduct ? t.products.editProduct : t.products.addProduct}
@@ -1220,7 +1293,7 @@ export default function Products() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4 px-4 py-4">
+            <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto px-4 py-4 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
                   Name
@@ -1251,23 +1324,23 @@ export default function Products() {
                 </p>
               </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-slate-700">
-                      Price
-                    </label>
-                    <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
-                      <span className="text-xs text-slate-500">Rp</span>
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        required
-                        value={form.price}
-                        onChange={handleChange('price')}
-                        className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
-                      />
-                    </div>
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">
+                  Price
+                </label>
+                <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
+                  <span className="text-xs text-slate-500">Rp</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    required
+                    value={form.price}
+                    onChange={handleChange('price')}
+                    className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
+                  />
+                </div>
+              </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
@@ -1373,7 +1446,7 @@ export default function Products() {
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="mt-auto shrink-0 flex items-center justify-end gap-2 pt-4 pb-2">
                 <button
                   type="button"
                   onClick={closeForm}
@@ -1425,11 +1498,10 @@ export default function Products() {
                       <div
                         className="h-full bg-primary-600 transition-all duration-300"
                         style={{
-                          width: `${
-                            (bulkUploadProgress.processed /
-                              bulkUploadProgress.total) *
+                          width: `${(bulkUploadProgress.processed /
+                            bulkUploadProgress.total) *
                             100
-                          }%`,
+                            }%`,
                         }}
                       />
                     </div>

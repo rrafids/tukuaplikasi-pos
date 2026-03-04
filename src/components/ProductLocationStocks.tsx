@@ -245,7 +245,7 @@ export default function ProductLocationStocks() {
     })
     setStockError('')
     setAvailableStock(null) // No limit on stock since it's location-based only
-    
+
     setShowForm(true)
   }
 
@@ -273,7 +273,7 @@ export default function ProductLocationStocks() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStockError('')
-    
+
     try {
       const productId = parseInt(form.product_id, 10)
       const locationId = parseInt(form.location_id, 10)
@@ -508,10 +508,10 @@ export default function ProductLocationStocks() {
               setBulkUploadProgress((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      processed: prev.processed + 1,
-                      success: prev.success + 1,
-                    }
+                    ...prev,
+                    processed: prev.processed + 1,
+                    success: prev.success + 1,
+                  }
                   : null,
               )
             } catch (error) {
@@ -523,10 +523,10 @@ export default function ProductLocationStocks() {
               setBulkUploadProgress((prev) =>
                 prev
                   ? {
-                      ...prev,
-                      processed: prev.processed + 1,
-                      errors: prev.errors + 1,
-                    }
+                    ...prev,
+                    processed: prev.processed + 1,
+                    errors: prev.errors + 1,
+                  }
                   : null,
               )
               console.error(
@@ -576,6 +576,49 @@ export default function ProductLocationStocks() {
     }
   }
 
+  const handleExportExcel = () => {
+    try {
+      const exportData = filteredStocks.map((stock) => {
+        const uomAbbrev = stock.product_uom_id
+          ? uoms.find((u) => u.id === stock.product_uom_id)?.abbreviation ?? '-'
+          : '-'
+
+        let stockVal = stock.stock
+        let unit = uomAbbrev
+
+        if (selectedUOMFilter && stock.convertedStock !== null) {
+          stockVal = stock.convertedStock
+          unit = uoms.find((u) => u.id === selectedUOMFilter)?.abbreviation || unit
+        }
+
+        return {
+          'Product ID': stock.product_id,
+          'Product Name': stock.product_name,
+          'Location ID': stock.location_id,
+          'Location Name': stock.location_name,
+          'Location Type': stock.location_type,
+          'Stock Quantity': stockVal,
+          'UOM': unit,
+        }
+      })
+
+      const ws = XLSX.utils.json_to_sheet(exportData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Location Stocks')
+
+      const now = new Date()
+      const dateStr = now.toISOString().split('T')[0]
+      const filename = `location_stocks_${dateStr}.xlsx`
+
+      XLSX.writeFile(wb, filename)
+
+      toast.success(`Exported ${filteredStocks.length} location stocks to ${filename}`)
+    } catch (error) {
+      console.error('[ProductLocationStocks] Error exporting to Excel:', error)
+      toast.error('Failed to export location stocks to Excel.')
+    }
+  }
+
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex flex-col gap-3 border-b border-slate-200 bg-white/80 px-4 py-3 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between">
@@ -588,6 +631,14 @@ export default function ProductLocationStocks() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
+          >
+            <ArrowDownTrayIcon className="h-4 w-4" />
+            <span>Export</span>
+          </button>
           <button
             type="button"
             onClick={() => setShowBulkUpload(true)}
@@ -750,8 +801,8 @@ export default function ProductLocationStocks() {
                     selectedUOMFilter && stock.convertedStock !== null
                       ? uoms.find((u) => u.id === selectedUOMFilter)?.abbreviation
                       : stock.product_uom_id
-                      ? uoms.find((u) => u.id === stock.product_uom_id)?.abbreviation
-                      : null
+                        ? uoms.find((u) => u.id === stock.product_uom_id)?.abbreviation
+                        : null
 
                   return (
                     <tr
@@ -766,11 +817,10 @@ export default function ProductLocationStocks() {
                       </td>
                       <td className="px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
                         <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                            stock.location_type === 'warehouse'
-                              ? 'bg-primary-100 text-primary-700'
-                              : 'bg-purple-100 text-purple-700'
-                          }`}
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${stock.location_type === 'warehouse'
+                            ? 'bg-primary-100 text-primary-700'
+                            : 'bg-purple-100 text-purple-700'
+                            }`}
                         >
                           {stock.location_type === 'warehouse' ? '🏭' : '🛒'}{' '}
                           {stock.location_type}
@@ -804,25 +854,25 @@ export default function ProductLocationStocks() {
                             )}
                         </div>
                       </td>
-                    <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
-                      <div className="inline-flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(stock)}
-                          className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(stock)}
-                          className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
+                      <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(stock)}
+                            className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(stock)}
+                            className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   )
                 })}
 
@@ -833,8 +883,8 @@ export default function ProductLocationStocks() {
                       className="px-4 py-8 text-center text-xs text-slate-500"
                     >
                       {searchQuery ||
-                      selectedProductFilter !== null ||
-                      selectedLocationFilter !== null
+                        selectedProductFilter !== null ||
+                        selectedLocationFilter !== null
                         ? 'No stock entries match your search or filter criteria.'
                         : 'No stock entries found. Click '}
                       {!searchQuery &&
@@ -894,6 +944,14 @@ export default function ProductLocationStocks() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    «
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
@@ -917,11 +975,10 @@ export default function ProductLocationStocks() {
                           key={pageNum}
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${
-                            currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
-                          }`}
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            }`}
                         >
                           {pageNum}
                         </button>
@@ -937,6 +994,14 @@ export default function ProductLocationStocks() {
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Next
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    »
                   </button>
                 </div>
               </div>
@@ -1162,11 +1227,10 @@ export default function ProductLocationStocks() {
                     setStockError('')
                   }}
                   placeholder="0"
-                  className={`w-full rounded-md border px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:ring-1 ${
-                    stockError
-                      ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
-                      : 'border-slate-300 focus:border-primary-500 focus:ring-primary-500'
-                  }`}
+                  className={`w-full rounded-md border px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:ring-1 ${stockError
+                    ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500'
+                    : 'border-slate-300 focus:border-primary-500 focus:ring-primary-500'
+                    }`}
                 />
                 {stockError && (
                   <p className="text-[10px] text-rose-600">{stockError}</p>

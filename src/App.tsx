@@ -3,6 +3,7 @@ import {
   ArchiveBoxIcon,
   ArrowTrendingUpIcon,
   ChartBarIcon,
+  Cog6ToothIcon,
   CubeIcon,
   DocumentTextIcon,
   MapPinIcon,
@@ -24,6 +25,7 @@ import ProductLocationStocks from './components/ProductLocationStocks'
 import Procurements from './components/Procurements'
 import Disposals from './components/Disposals'
 import Sales from './components/Sales'
+import LabaRugi from './components/LabaRugi'
 import StockMovements from './components/StockMovements'
 import AuditTrail from './components/AuditTrail'
 import Dashboard from './components/Dashboard'
@@ -33,16 +35,18 @@ import Users from './components/Users'
 import Roles from './components/Roles'
 import Login from './components/Login'
 import LicenseActivation from './components/LicenseActivation'
+import Settings from './components/Settings'
 import ToastContainer from './components/Toast'
 import { ToastProvider, useToastContext } from './contexts/ToastContext'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { LicenseProvider, useLicense } from './contexts/LicenseContext'
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext'
+import { SettingsProvider, useSettings } from './contexts/SettingsContext'
 import LanguageToggle from './components/LanguageToggle'
 import ConfirmModal from './components/ConfirmModal'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 
-type View = 'dashboard' | 'products' | 'categories' | 'uoms' | 'locations' | 'product-location-stocks' | 'procurements' | 'disposals' | 'sales' | 'stock-movements' | 'audit-trail' | 'stock-monitoring' | 'stock-opname' | 'users' | 'roles'
+type View = 'dashboard' | 'products' | 'categories' | 'uoms' | 'locations' | 'product-location-stocks' | 'procurements' | 'disposals' | 'sales' | 'laba-rugi' | 'stock-movements' | 'audit-trail' | 'stock-monitoring' | 'stock-opname' | 'users' | 'roles' | 'settings'
 
 function AppContent() {
   const [currentView, setCurrentView] = useState<View>('dashboard')
@@ -52,6 +56,7 @@ function AppContent() {
   const { user, logout, hasPermission, isLoading: authLoading } = useAuth()
   const { isActivated, isLoading: licenseLoading } = useLicense()
   const { t } = useLanguage()
+  const { appName } = useSettings()
 
   // Show loading if checking license or auth
   if (licenseLoading || authLoading) {
@@ -114,7 +119,7 @@ function AppContent() {
                 <img src="/tlog.png" alt="" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
                 <div>
                   <div className="text-sm font-semibold tracking-tight">
-                    {t.app.title}
+                    {appName}
                   </div>
                   <div className="text-xs text-slate-500">{user.username}</div>
                 </div>
@@ -164,12 +169,13 @@ function AppContent() {
               )}
 
             {/* Orders Management */}
-            {hasPermission('sales') && (
+            {(hasPermission('sales') || hasPermission('laba-rugi')) && (
               <div className="space-y-1">
                 <div className="px-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">
                   {t.nav.ordersManagement}
                 </div>
                 {renderMenuItem('sales', t.nav.sales, ShoppingBagIcon)}
+                {renderMenuItem('laba-rugi', t.nav.labaRugi, ChartBarIcon)}
               </div>
             )}
 
@@ -191,6 +197,7 @@ function AppContent() {
                 </div>
                 {renderMenuItem('users', t.nav.users, UserGroupIcon)}
                 {renderMenuItem('roles', t.nav.roles, ShieldCheckIcon)}
+                {renderMenuItem('settings', t.nav.settings, Cog6ToothIcon)}
               </div>
             )}
           </nav>
@@ -236,6 +243,8 @@ function AppContent() {
           <Disposals />
         ) : currentView === 'sales' ? (
           <Sales />
+        ) : currentView === 'laba-rugi' ? (
+          <LabaRugi />
         ) : currentView === 'stock-movements' ? (
           <StockMovements />
         ) : currentView === 'stock-monitoring' ? (
@@ -248,6 +257,8 @@ function AppContent() {
           <Users />
         ) : currentView === 'roles' ? (
           <Roles />
+        ) : currentView === 'settings' ? (
+          <Settings />
         ) : (
           <Products />
         )}
@@ -276,7 +287,9 @@ function App() {
       <ToastProvider>
         <LicenseProvider>
           <AuthProvider>
-            <AppContent />
+            <SettingsProvider>
+              <AppContent />
+            </SettingsProvider>
           </AuthProvider>
         </LicenseProvider>
       </ToastProvider>
