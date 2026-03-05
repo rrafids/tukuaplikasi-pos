@@ -6,6 +6,7 @@ export type ProductRow = {
   id: number
   name: string
   price: number
+  buy_price: number | null
   barcode: string | null
   uom_id: number | null
   created_at: string
@@ -23,7 +24,7 @@ async function getDbPath(): Promise<string> {
   // Use simple path in app data directory root
   // This is the most reliable approach with Tauri SQL plugin
   const dbPath = 'sqlite:satria_pos.db'
-  
+
   // Log the actual full path for debugging (only in dev mode)
   if (import.meta.env.DEV) {
     try {
@@ -34,7 +35,7 @@ async function getDbPath(): Promise<string> {
       console.warn('[DB] Could not resolve app data directory:', error)
     }
   }
-  
+
   console.log('[DB] Using database path:', dbPath)
   return dbPath
 }
@@ -58,6 +59,7 @@ async function getDb() {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT NOT NULL,
           price REAL NOT NULL,
+          buy_price REAL,
           barcode TEXT UNIQUE,
           uom_id INTEGER,
           created_at TEXT NOT NULL,
@@ -66,7 +68,7 @@ async function getDb() {
           FOREIGN KEY (uom_id) REFERENCES uoms(id)
         )
       `)
-      
+
       // Add uom_id column if it doesn't exist (for existing databases)
       try {
         await db.execute(`ALTER TABLE products ADD COLUMN uom_id INTEGER`)
@@ -81,6 +83,14 @@ async function getDb() {
       } catch (error) {
         // Column already exists, ignore error
         console.log('[DB] barcode column may already exist')
+      }
+
+      // Add buy_price column if it doesn't exist (for existing databases)
+      try {
+        await db.execute(`ALTER TABLE products ADD COLUMN buy_price REAL`)
+      } catch (error) {
+        // Column already exists, ignore error
+        console.log('[DB] buy_price column may already exist')
       }
       console.log('[DB] Table created/verified successfully')
     } catch (error) {
@@ -109,6 +119,7 @@ export async function listProducts(): Promise<ProductRow[]> {
 export async function createProduct(input: {
   name: string
   price: number
+  buy_price?: number | null
   barcode?: string | null
   uom_id?: number | null
 }): Promise<ProductRow> {
@@ -118,12 +129,13 @@ export async function createProduct(input: {
     console.log('[DB] Executing INSERT:', input)
     await db.execute(
       `
-        INSERT INTO products (name, price, barcode, uom_id, created_at, updated_at, deleted_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NULL)
+        INSERT INTO products (name, price, buy_price, barcode, uom_id, created_at, updated_at, deleted_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NULL)
       `,
       [
         input.name,
         input.price,
+        input.buy_price ?? null,
         input.barcode?.trim() || null,
         input.uom_id ?? null,
         now,
@@ -146,6 +158,7 @@ export async function updateProduct(
   input: {
     name: string
     price: number
+    buy_price?: number | null
     barcode?: string | null
     uom_id?: number | null
   },
@@ -165,14 +178,16 @@ export async function updateProduct(
       UPDATE products
       SET name = $1,
           price = $2,
-          barcode = $3,
-          uom_id = $4,
-          updated_at = $5
-      WHERE id = $6
+          buy_price = $3,
+          barcode = $4,
+          uom_id = $5,
+          updated_at = $6
+      WHERE id = $7
     `,
     [
       input.name,
       input.price,
+      input.buy_price ?? oldValues?.buy_price ?? null,
       input.barcode !== undefined
         ? (input.barcode?.trim() || null)
         : oldValues?.barcode ?? null,
@@ -196,12 +211,14 @@ export async function updateProduct(
       old_values: {
         name: oldValues.name,
         price: oldValues.price,
+        buy_price: oldValues.buy_price,
         barcode: oldValues.barcode,
         uom_id: oldValues.uom_id,
       },
       new_values: {
         name: updated.name,
         price: updated.price,
+        buy_price: updated.buy_price,
         barcode: updated.barcode,
         uom_id: updated.uom_id,
       },

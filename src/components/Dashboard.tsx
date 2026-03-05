@@ -278,7 +278,7 @@ export default function Dashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="transaction_count" fill="#10b981" name="Transactions" />
+                <Bar dataKey="transaction_count" fill="#10b981" name={t.dashboard.transactions} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -307,8 +307,8 @@ export default function Dashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="approved_count" fill="#10b981" name="Approved" />
-                <Bar dataKey="pending_count" fill="#f59e0b" name="Pending" />
+                <Bar dataKey="approved_count" fill="#10b981" name={t.dashboard.approved} />
+                <Bar dataKey="pending_count" fill="#f59e0b" name={t.dashboard.pending} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -346,7 +346,7 @@ export default function Dashboard() {
                     borderRadius: '8px',
                   }}
                 />
-                <Bar dataKey="total_revenue" fill="#6366f1" name="Revenue" />
+                <Bar dataKey="total_revenue" fill="#6366f1" name={t.dashboard.revenue} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -411,8 +411,8 @@ export default function Dashboard() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="approved_count" fill="#ef4444" name="Approved" />
-                <Bar dataKey="pending_count" fill="#f59e0b" name="Pending" />
+                <Bar dataKey="approved_count" fill="#ef4444" name={t.dashboard.approved} />
+                <Bar dataKey="pending_count" fill="#f59e0b" name={t.dashboard.pending} />
               </BarChart>
             </ResponsiveContainer>
           </div>

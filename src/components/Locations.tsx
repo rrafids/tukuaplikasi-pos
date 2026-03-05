@@ -268,10 +268,9 @@ export default function Locations() {
               {t.locations.locationList}
             </h2>
             <p className="text-xs text-slate-500">
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredLocations.length)} of{' '}
-              {filteredLocations.length} location
-              {filteredLocations.length === 1 ? '' : 's'}
-              {showDeleted ? ' (including deleted)' : ''}
+              {t.common.showing} {startIndex + 1}-{Math.min(endIndex, filteredLocations.length)} {t.common.of}{' '}
+              {filteredLocations.length} {t.locations.title.toLowerCase()}
+              {showDeleted ? ` (${t.common.showDeleted.toLowerCase()})` : ''}
             </p>
 
             {/* Search and Filter */}
@@ -333,8 +332,8 @@ export default function Locations() {
                         </div>
                         <span
                           className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${location.type === 'warehouse'
-                              ? 'bg-primary-100 text-primary-700'
-                              : 'bg-purple-100 text-purple-700'
+                            ? 'bg-primary-100 text-primary-700'
+                            : 'bg-purple-100 text-purple-700'
                             }`}
                         >
                           {location.type === 'warehouse' ? '🏭' : '🛒'}{' '}
@@ -384,13 +383,12 @@ export default function Locations() {
             {visibleLocations.length === 0 && (
               <div className="px-4 py-8 text-center text-xs text-slate-500">
                 {searchQuery || typeFilter !== 'all'
-                  ? 'No locations match your search or filter criteria.'
-                  : 'No locations found. Click '}
+                  ? t.locations.noLocationsMatch
+                  : t.locations.noLocationsFound}
                 {!searchQuery && typeFilter === 'all' && (
-                  <>
-                    <span className="font-medium text-slate-900">New Location</span>{' '}
-                    to add one.
-                  </>
+                  <div className="mt-1">
+                    {t.locations.clickNewLocation}
+                  </div>
                 )}
               </div>
             )}
@@ -468,8 +466,8 @@ export default function Locations() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -536,7 +534,7 @@ export default function Locations() {
                   onChange={(e) =>
                     setForm({ ...form, name: e.target.value })
                   }
-                  placeholder="e.g., Main Warehouse, Online Store"
+                  placeholder={t.locations.enterLocationName}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>

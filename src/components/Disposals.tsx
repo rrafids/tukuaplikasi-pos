@@ -9,7 +9,7 @@ import {
   XCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listProducts } from '../db/products'
 import type { ProductRow } from '../db/products'
 import { listLocations } from '../db/locations'
@@ -26,6 +26,7 @@ import {
 import type { DisposalRow, DisposalStatus } from '../db/disposals'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 type Disposal = DisposalRow & {
   product_name: string
@@ -45,6 +46,7 @@ type DisposalFormState = {
 export default function Disposals() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [disposals, setDisposals] = useState<Disposal[]>([])
   const [products, setProducts] = useState<ProductRow[]>([])
   const [locations, setLocations] = useState<LocationRow[]>([])
@@ -381,19 +383,19 @@ export default function Disposals() {
     const badges = {
       pending: (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-          Pending
+          {t.common.pending}
         </span>
       ),
       approved: (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
           <CheckCircleIcon className="h-3 w-3" />
-          Approved
+          {t.common.approved}
         </span>
       ),
       rejected: (
         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium text-rose-800">
           <XCircleIcon className="h-3 w-3" />
-          Rejected
+          {t.common.rejected}
         </span>
       ),
     }
@@ -402,41 +404,49 @@ export default function Disposals() {
 
   const handleExportExcel = () => {
     try {
-      // Prepare data for export
-      const exportData = filteredDisposals.map((d) => {
-        return {
-          'ID': d.id,
-          'Date': new Date(d.created_at).toLocaleDateString('id-ID'),
-          'Product': d.product_name,
-          'Location': d.location_name,
-          'Location Type': d.location_type,
-          'Quantity': d.quantity,
-          'Reason': d.reason || '-',
-          'Status': d.status.charAt(0).toUpperCase() + d.status.slice(1),
-          'Notes': d.notes || '-',
-          'Created At': new Date(d.created_at).toLocaleString('id-ID'),
-          'Updated At': new Date(d.updated_at).toLocaleString('id-ID'),
-        }
-      })
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      // Create workbook and worksheet
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const headers = ['ID', 'Date', 'Product', 'Location', 'Location Type', 'Quantity', 'Reason', 'PIC', 'Status', 'Notes', 'Created At']
+
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Pembuangan / Disposals', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'DETAIL PEMBUANGAN', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+        ...filteredDisposals.map(d => [
+          { v: d.id, s: BODY_STYLE },
+          { v: new Date(d.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
+          { v: d.product_name, s: BODY_STYLE },
+          { v: d.location_name, s: BODY_STYLE },
+          { v: d.location_type, s: BODY_STYLE },
+          { v: d.quantity, s: BODY_STYLE },
+          { v: d.reason || '-', s: BODY_STYLE },
+          { v: d.pic || '-', s: BODY_STYLE },
+          { v: d.status.charAt(0).toUpperCase() + d.status.slice(1), s: BODY_STYLE },
+          { v: d.notes || '-', s: BODY_STYLE },
+          { v: new Date(d.created_at).toLocaleString('id-ID'), s: BODY_STYLE },
+        ])
+      ]
+
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 20 }, { wch: 15 }, { wch: 12 }, { wch: 25 }, { wch: 20 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Disposals')
 
-      // Generate filename with current date
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `disposals_${dateStr}.xlsx`
-
-      // Write file
       XLSX.writeFile(wb, filename)
-
-      toast.success(`Exported ${exportData.length} disposals to ${filename}`)
+      toast.success(`Exported ${filteredDisposals.length} disposals to ${filename}`)
     } catch (error) {
       console.error('[Disposals] Error exporting to Excel:', error)
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
       toast.error(`Failed to export: ${errorMessage}`)
     }
   }
@@ -460,15 +470,15 @@ export default function Disposals() {
             className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
-            <span className="hidden md:inline">Export Excel</span>
+            <span className="hidden md:inline">{t.common.exportExcel}</span>
             <span className="md:hidden">Export</span>
           </button>
           <button
             type="button"
             onClick={() => setShowDeleted(!showDeleted)}
             className={`rounded-md border px-3 py-1.5 text-xs font-medium md:px-4 md:py-2 md:text-sm ${showDeleted
-                ? 'border-primary-300 bg-primary-50 text-primary-700'
-                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+              ? 'border-primary-300 bg-primary-50 text-primary-700'
+              : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
             {showDeleted ? t.common.showActive : t.common.showDeleted}
@@ -496,11 +506,11 @@ export default function Disposals() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'all'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              All
+              {t.common.all}
             </button>
             <button
               type="button"
@@ -509,11 +519,11 @@ export default function Disposals() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'approval'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              Approval
+              {t.common.approval}
             </button>
             <button
               type="button"
@@ -522,11 +532,11 @@ export default function Disposals() {
                 setCurrentPage(1)
               }}
               className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'completed'
-                  ? 'border-primary-500 text-primary-600'
-                  : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              Completed
+              {t.common.completed}
             </button>
           </nav>
         </section>
@@ -537,13 +547,13 @@ export default function Disposals() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Pending Disposals
+                  {t.disposals.pendingDisposals}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {pendingCount}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {pendingQuantity.toLocaleString('id-ID')} units
+                  {pendingQuantity.toLocaleString('id-ID')} {t.common.units}
                 </p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50">
@@ -555,13 +565,13 @@ export default function Disposals() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Completed Disposals
+                  {t.disposals.completedDisposals}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {completedCount}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {completedQuantity.toLocaleString('id-ID')} units
+                  {completedQuantity.toLocaleString('id-ID')} {t.common.units}
                 </p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
@@ -573,13 +583,13 @@ export default function Disposals() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Total Disposals
+                  {t.disposals.totalDisposals}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {allDisposals.length}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {allDisposals.reduce((sum, d) => sum + d.quantity, 0).toLocaleString('id-ID')} units
+                  {allDisposals.reduce((sum, d) => sum + d.quantity, 0).toLocaleString('id-ID')} {t.common.units}
                 </p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
@@ -599,7 +609,7 @@ export default function Disposals() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by product, location, reason, or notes..."
+                  placeholder={t.disposals.searchDisposal}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -664,8 +674,8 @@ export default function Disposals() {
                     }}
                     disabled={isStatusFilterLocked}
                     className={`w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm ${isStatusFilterLocked
-                        ? 'cursor-not-allowed bg-slate-100 opacity-60'
-                        : ''
+                      ? 'cursor-not-allowed bg-slate-100 opacity-60'
+                      : ''
                       }`}
                   >
                     <option value="all">All Status</option>
@@ -720,18 +730,18 @@ export default function Disposals() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Product</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Quantity</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Reason</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">PIC</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Status</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.date}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.nav.products}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.locations.title}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.quantity}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.disposals.reason}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.disposals.pic}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.status}</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                    Notes
+                    {t.disposals.notesOptional}
                   </th>
                   <th className="px-3 py-2 text-right md:px-4 md:py-3">
-                    Actions
+                    {t.common.actions}
                   </th>
                 </tr>
               </thead>
@@ -953,8 +963,8 @@ export default function Disposals() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -1005,77 +1015,68 @@ export default function Disposals() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 px-4 py-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Product <span className="text-rose-500">*</span>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.nav.products}
                 </label>
-                <div className="relative">
-                  <select
-                    required
-                    value={form.product_id}
-                    onChange={(e) =>
-                      setForm({ ...form, product_id: e.target.value })
-                    }
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                  >
-                    <option value="">Select a product</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                </div>
+                <select
+                  required
+                  value={form.product_id}
+                  onChange={(e) =>
+                    setForm({ ...form, product_id: e.target.value })
+                  }
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                >
+                  <option value="">{t.disposals.selectProduct}</option>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Location <span className="text-rose-500">*</span>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.locations.title}
                 </label>
-                <div className="relative">
-                  <select
-                    required
-                    value={form.location_id}
-                    onChange={(e) =>
-                      setForm({ ...form, location_id: e.target.value })
-                    }
-                    className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                  >
-                    <option value="">Select a location</option>
-                    {locations.map((location) => (
-                      <option key={location.id} value={location.id}>
-                        {location.name} ({location.type})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                </div>
+                <select
+                  required
+                  value={form.location_id}
+                  onChange={(e) =>
+                    setForm({ ...form, location_id: e.target.value })
+                  }
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                >
+                  <option value="">{t.disposals.selectLocation}</option>
+                  {locations.map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name} ({location.type})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Quantity <span className="text-rose-500">*</span>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.common.quantity}
                 </label>
                 <input
                   type="number"
-                  min={1}
                   required
+                  min="1"
                   value={form.quantity}
                   onChange={(e) =>
                     setForm({ ...form, quantity: e.target.value })
                   }
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   placeholder="0"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
-                <p className="text-[10px] text-slate-500">
-                  This will reduce stock from the location after approval
-                </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Reason (Optional)
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.disposals.reason} ({t.common.optional})
                 </label>
                 <input
                   type="text"
@@ -1083,38 +1084,34 @@ export default function Disposals() {
                   onChange={(e) =>
                     setForm({ ...form, reason: e.target.value })
                   }
-                  placeholder="e.g., Damaged, Expired, Lost"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder={t.disposals.enterReason}
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  PIC (Person In Charge) (Optional)
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.disposals.pic} ({t.common.optional})
                 </label>
                 <input
                   type="text"
                   value={form.pic}
-                  onChange={(e) =>
-                    setForm({ ...form, pic: e.target.value })
-                  }
-                  placeholder="Person in charge name"
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  onChange={(e) => setForm({ ...form, pic: e.target.value })}
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder={t.disposals.enterPICName}
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Notes (Optional)
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  {t.procurements.notes} ({t.common.optional})
                 </label>
                 <textarea
                   value={form.notes}
-                  onChange={(e) =>
-                    setForm({ ...form, notes: e.target.value })
-                  }
-                  placeholder="Additional notes..."
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={3}
-                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                  placeholder={t.procurements.enterNotes}
                 />
               </div>
 
@@ -1122,7 +1119,7 @@ export default function Disposals() {
                 <div className="grid gap-3 rounded-md bg-slate-50 p-3 text-[10px] text-slate-500 md:grid-cols-2">
                   <div>
                     <div className="font-semibold text-slate-600">
-                      Created at
+                      {t.common.createdAt}
                     </div>
                     <div>
                       {new Date(

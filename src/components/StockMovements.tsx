@@ -8,7 +8,7 @@ import {
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listProducts } from '../db/products'
 import type { ProductRow } from '../db/products'
 import { listLocations, getProductLocationStocks } from '../db/locations'
@@ -20,10 +20,12 @@ import type {
 } from '../db/stockMovements'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 export default function StockMovements() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [movements, setMovements] = useState<StockMovementWithDetails[]>([])
   const [products, setProducts] = useState<ProductRow[]>([])
   const [locations, setLocations] = useState<LocationRow[]>([])
@@ -64,7 +66,7 @@ export default function StockMovements() {
         setLocations(locs.filter((l) => l.deleted_at === null))
       } catch (error) {
         console.error('[StockMovements] Error loading:', error)
-        toast.error('Failed to load stock movements data.')
+        toast.error(t.stockMovements.failedToLoad)
       }
     }
     void load()
@@ -161,27 +163,27 @@ export default function StockMovements() {
     const badges = {
       procurement: (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
-          Procurement
+          {t.stockMovements.procurement}
         </span>
       ),
       sale: (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-800">
-          Sale
+          {t.stockMovements.sale}
         </span>
       ),
       disposal: (
         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium text-rose-800">
-          Disposal
+          {t.stockMovements.disposal}
         </span>
       ),
       adjustment: (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-          Adjustment
+          {t.stockMovements.adjustment}
         </span>
       ),
       transfer: (
         <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
-          Transfer
+          {t.stockMovements.transfer}
         </span>
       ),
     }
@@ -294,37 +296,49 @@ export default function StockMovements() {
 
   const handleExportExcel = () => {
     try {
-      const exportData = filteredMovements.map((m) => {
-        return {
-          'ID': m.id,
-          'Date': new Date(m.created_at).toLocaleDateString('id-ID'),
-          'Time': new Date(m.created_at).toLocaleTimeString('id-ID'),
-          'Product': m.product_name,
-          'Location': m.location_name,
-          'Location Type': m.location_type,
-          'Movement Type': m.movement_type.charAt(0).toUpperCase() + m.movement_type.slice(1),
-          'Quantity': m.quantity > 0 ? `+${m.quantity}` : m.quantity.toString(),
-          'Reference ID': m.reference_id || '-',
-          'Reference Type': m.reference_type || '-',
-          'Notes': m.notes || '-',
-          'Created At': new Date(m.created_at).toLocaleString('id-ID'),
-        }
-      })
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const headers = ['ID', 'Date', 'Time', 'Product', 'Location', 'Location Type', 'Movement Type', 'Quantity', 'Reference ID', 'Reference Type', 'Notes']
+
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Pergerakan Stok', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'DETAIL PERGERAKAN STOK', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+        ...filteredMovements.map(m => [
+          { v: m.id, s: BODY_STYLE },
+          { v: new Date(m.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
+          { v: new Date(m.created_at).toLocaleTimeString('id-ID'), s: BODY_STYLE },
+          { v: m.product_name, s: BODY_STYLE },
+          { v: m.location_name, s: BODY_STYLE },
+          { v: m.location_type, s: BODY_STYLE },
+          { v: m.movement_type.charAt(0).toUpperCase() + m.movement_type.slice(1), s: BODY_STYLE },
+          { v: m.quantity > 0 ? `+${m.quantity}` : m.quantity.toString(), s: BODY_STYLE },
+          { v: m.reference_id || '-', s: BODY_STYLE },
+          { v: m.reference_type || '-', s: BODY_STYLE },
+          { v: m.notes || '-', s: BODY_STYLE },
+        ])
+      ]
+
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 15 }, { wch: 10 }, { wch: 14 }, { wch: 14 }, { wch: 25 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Stock Movements')
 
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `stock_movements_${dateStr}.xlsx`
-
       XLSX.writeFile(wb, filename)
-
-      toast.success(`Exported ${exportData.length} stock movements to ${filename}`)
+      toast.success(t.stockMovements.exportSuccess.replace('{count}', filteredMovements.length.toString()).replace('{filename}', filename))
     } catch (error) {
       console.error('[StockMovements] Error exporting to Excel:', error)
-      toast.error('Failed to export stock movements to Excel.')
+      toast.error(t.stockMovements.exportFailed)
     }
   }
 
@@ -347,8 +361,8 @@ export default function StockMovements() {
             className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
-            <span className="hidden md:inline">Export Excel</span>
-            <span className="md:hidden">Export</span>
+            <span className="hidden md:inline">{t.stockMovements.exportExcel}</span>
+            <span className="md:hidden">{t.stockMovements.export}</span>
           </button>
           <button
             type="button"
@@ -369,7 +383,7 @@ export default function StockMovements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Total Movements
+                  {t.stockMovements.totalMovements}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {totalMovements}
@@ -384,13 +398,13 @@ export default function StockMovements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Increases
+                  {t.stockMovements.increases}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {totalIncreases}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {totalQuantityIncrease.toLocaleString('id-ID')} units
+                  {totalQuantityIncrease.toLocaleString('id-ID')} {t.stockMovements.units}
                 </p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
@@ -402,13 +416,13 @@ export default function StockMovements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Decreases
+                  {t.stockMovements.decreases}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {totalDecreases}
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  {totalQuantityDecrease.toLocaleString('id-ID')} units
+                  {totalQuantityDecrease.toLocaleString('id-ID')} {t.stockMovements.units}
                 </p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-50">
@@ -420,13 +434,13 @@ export default function StockMovements() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Net Change
+                  {t.stockMovements.netChange}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {totalQuantityIncrease - totalQuantityDecrease >= 0 ? '+' : ''}
                   {(totalQuantityIncrease - totalQuantityDecrease).toLocaleString('id-ID')}
                 </p>
-                <p className="mt-1 text-xs text-slate-500">units</p>
+                <p className="mt-1 text-xs text-slate-500">{t.stockMovements.units}</p>
               </div>
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-50">
                 <ArrowTrendingUpIcon className="h-5 w-5 text-slate-600" />
@@ -445,7 +459,7 @@ export default function StockMovements() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by product, location, or notes..."
+                  placeholder={t.stockMovements.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -468,7 +482,7 @@ export default function StockMovements() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="">All Products</option>
+                    <option value="">{t.stockMovements.allProducts}</option>
                     {products.map((product) => (
                       <option key={product.id} value={product.id}>
                         {product.name}
@@ -488,7 +502,7 @@ export default function StockMovements() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="">All Locations</option>
+                    <option value="">{t.stockMovements.allLocations}</option>
                     {locations.map((location) => (
                       <option key={location.id} value={location.id}>
                         {location.name}
@@ -508,12 +522,12 @@ export default function StockMovements() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="all">All Types</option>
-                    <option value="procurement">Procurement</option>
-                    <option value="sale">Sale</option>
-                    <option value="disposal">Disposal</option>
-                    <option value="adjustment">Adjustment</option>
-                    <option value="transfer">Transfer</option>
+                    <option value="all">{t.stockMovements.allTypes}</option>
+                    <option value="procurement">{t.stockMovements.procurement}</option>
+                    <option value="sale">{t.stockMovements.sale}</option>
+                    <option value="disposal">{t.stockMovements.disposal}</option>
+                    <option value="adjustment">{t.stockMovements.adjustment}</option>
+                    <option value="transfer">{t.stockMovements.transfer}</option>
                   </select>
                   <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -525,7 +539,7 @@ export default function StockMovements() {
                       setDateFromFilter(e.target.value)
                       setCurrentPage(1)
                     }}
-                    placeholder="From Date"
+                    placeholder={t.stockMovements.fromDate}
                     className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
@@ -537,7 +551,7 @@ export default function StockMovements() {
                       setDateToFilter(e.target.value)
                       setCurrentPage(1)
                     }}
-                    placeholder="To Date"
+                    placeholder={t.stockMovements.toDate}
                     className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
@@ -553,7 +567,7 @@ export default function StockMovements() {
                     }}
                     className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
-                    Clear Dates
+                    {t.stockMovements.clearDates}
                   </button>
                 </div>
               )}
@@ -564,14 +578,14 @@ export default function StockMovements() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Product</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Type</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Quantity</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Reference</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.dateTime}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.product}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.location}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.type}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.quantity}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.stockMovements.reference}</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                    Notes
+                    {t.stockMovements.notes}
                   </th>
                 </tr>
               </thead>
@@ -651,8 +665,8 @@ export default function StockMovements() {
                         selectedTypeFilter !== 'all' ||
                         dateFromFilter ||
                         dateToFilter
-                        ? 'No stock movements match your search or filter criteria.'
-                        : 'No stock movements found.'}
+                        ? t.stockMovements.noMovementsMatch
+                        : t.stockMovements.noMovementsFound}
                     </td>
                   </tr>
                 )}
@@ -666,22 +680,22 @@ export default function StockMovements() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="text-xs text-slate-500">
-                    Showing{' '}
+                    {t.common.showing}{' '}
                     <span className="font-medium text-slate-900">
                       {(currentPage - 1) * itemsPerPage + 1}
                     </span>{' '}
-                    to{' '}
+                    {t.common.to}{' '}
                     <span className="font-medium text-slate-900">
                       {Math.min(currentPage * itemsPerPage, filteredMovements.length)}
                     </span>{' '}
-                    of{' '}
+                    {t.common.of}{' '}
                     <span className="font-medium text-slate-900">
                       {filteredMovements.length}
                     </span>{' '}
-                    results
+                    {t.common.results}
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-xs text-slate-500">Items per page:</label>
+                    <label className="text-xs text-slate-500">{t.common.itemsPerPage}:</label>
                     <select
                       value={itemsPerPage}
                       onChange={(e) => {
@@ -712,7 +726,7 @@ export default function StockMovements() {
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previous
+                    {t.common.previous}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -732,8 +746,8 @@ export default function StockMovements() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -749,7 +763,7 @@ export default function StockMovements() {
                     disabled={currentPage === totalPages}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Next
+                    {t.common.next}
                   </button>
                   <button
                     type="button"

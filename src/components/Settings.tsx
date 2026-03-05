@@ -5,23 +5,30 @@ import { useLanguage } from '../contexts/LanguageContext'
 import { useToastContext } from '../contexts/ToastContext'
 
 export default function Settings() {
-  const { appName, setAppName } = useSettings()
+  const { appName, setAppName, whatsappNumber, setWhatsappNumber } = useSettings()
   const { t } = useLanguage()
   const { success, error: showError } = useToastContext()
-  const [inputValue, setInputValue] = useState(appName)
+  const [nameInputValue, setNameInputValue] = useState(appName)
+  const [whatsappInputValue, setWhatsappInputValue] = useState(whatsappNumber)
   const [isSaving, setIsSaving] = useState(false)
 
-  // Sync input when context appName loads
+  // Sync inputs when context data loads
   useEffect(() => {
-    setInputValue(appName)
-  }, [appName])
+    setNameInputValue(appName)
+    setWhatsappInputValue(whatsappNumber)
+  }, [appName, whatsappNumber])
 
   const handleSave = async () => {
-    const trimmed = inputValue.trim()
-    if (!trimmed) return
+    const trimmedName = nameInputValue.trim()
+    const trimmedWhatsapp = whatsappInputValue.trim()
+    if (!trimmedName) return
+
     setIsSaving(true)
     try {
-      await setAppName(trimmed)
+      await Promise.all([
+        setAppName(trimmedName),
+        setWhatsappNumber(trimmedWhatsapp)
+      ])
       success(t.settings.saved)
     } catch {
       showError(t.common.error)
@@ -63,8 +70,8 @@ export default function Settings() {
               <input
                 id="app-name-input"
                 type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
+                value={nameInputValue}
+                onChange={(e) => setNameInputValue(e.target.value)}
                 placeholder={t.settings.appNamePlaceholder}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-slate-50"
                 onKeyDown={(e) => {
@@ -74,10 +81,31 @@ export default function Settings() {
               <p className="mt-1.5 text-xs text-slate-400">{t.settings.appNameHint}</p>
             </div>
 
+            <div>
+              <label
+                htmlFor="whatsapp-input"
+                className="mb-1.5 block text-sm font-medium text-slate-700"
+              >
+                {t.settings.whatsapp}
+              </label>
+              <input
+                id="whatsapp-input"
+                type="text"
+                value={whatsappInputValue}
+                onChange={(e) => setWhatsappInputValue(e.target.value)}
+                placeholder={t.settings.whatsappPlaceholder}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none transition focus:border-primary-500 focus:ring-2 focus:ring-primary-100 disabled:bg-slate-50"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSave()
+                }}
+              />
+              <p className="mt-1.5 text-xs text-slate-400">{t.settings.whatsappHint}</p>
+            </div>
+
             <div className="flex justify-end pt-2">
               <button
                 onClick={handleSave}
-                disabled={isSaving || !inputValue.trim()}
+                disabled={isSaving || !nameInputValue.trim()}
                 className="rounded-lg bg-primary-600 px-5 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSaving ? t.common.loading : t.common.save}

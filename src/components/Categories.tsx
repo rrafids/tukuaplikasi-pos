@@ -331,7 +331,7 @@ export default function Categories() {
   }
 
   const getCategoryName = (categoryId: number) => {
-    return categories.find((c) => c.id === categoryId)?.name ?? 'Unknown'
+    return categories.find((c) => c.id === categoryId)?.name ?? t.common.unknown
   }
 
   const getSubcategoriesByCategory = (categoryId: number) => {
@@ -390,7 +390,7 @@ export default function Categories() {
                 {t.categories.title}
               </h2>
               <p className="text-xs text-slate-500">
-                {t.common.showing} {categoryStartIndex + 1}-{Math.min(categoryEndIndex, filteredCategories.length)} {t.common.of} {filteredCategories.length} {filteredCategories.length === 1 ? 'category' : 'categories'}
+                {t.common.showing} {categoryStartIndex + 1}-{Math.min(categoryEndIndex, filteredCategories.length)} {t.common.of} {filteredCategories.length} {filteredCategories.length === 1 ? t.common.category : t.common.categories}
               </p>
 
               {/* Search */}
@@ -563,8 +563,8 @@ export default function Categories() {
                             type="button"
                             onClick={() => setCategoryCurrentPage(pageNum)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium ${categoryCurrentPage === pageNum
-                                ? 'bg-primary-600 text-white'
-                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                              ? 'bg-primary-600 text-white'
+                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                               }`}
                           >
                             {pageNum}
@@ -673,7 +673,7 @@ export default function Categories() {
                           </div>
                         )}
                         <div className="mt-1 text-xs text-slate-500">
-                          Category: {getCategoryName(subcategory.category_id)}
+                          {t.categories.selectCategory}: {getCategoryName(subcategory.category_id)}
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
@@ -713,15 +713,15 @@ export default function Categories() {
               {visibleSubcategories.length === 0 && (
                 <div className="px-4 py-8 text-center text-xs text-slate-500">
                   {subcategorySearchQuery || selectedCategoryFilter !== null
-                    ? 'No subcategories match your search or filter criteria.'
-                    : 'No subcategories found. Click '}
+                    ? t.categories.noSubcategoriesMatch
+                    : `${t.categories.noSubcategoriesFound} `}
                   {!subcategorySearchQuery && selectedCategoryFilter === null && (
-                    <>
-                      <span className="font-medium text-slate-900">
-                        New Subcategory
-                      </span>{' '}
-                      to add one.
-                    </>
+                    <button
+                      onClick={openCreateSubcategory}
+                      className="mt-2 block w-full text-center font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      {t.categories.clickNewSubcategory}
+                    </button>
                   )}
                 </div>
               )}
@@ -799,8 +799,8 @@ export default function Categories() {
                             type="button"
                             onClick={() => setSubcategoryCurrentPage(pageNum)}
                             className={`rounded-md px-3 py-1.5 text-xs font-medium ${subcategoryCurrentPage === pageNum
-                                ? 'bg-primary-600 text-white'
-                                : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                              ? 'bg-primary-600 text-white'
+                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                               }`}
                           >
                             {pageNum}
@@ -839,7 +839,7 @@ export default function Categories() {
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 md:text-base">
-                  {editingCategory ? 'Edit Category' : 'New Category'}
+                  {editingCategory ? t.categories.editCategory : t.categories.newCategory}
                 </h2>
                 {editingCategory && (
                   <p className="text-xs text-slate-500">ID #{editingCategory.id}</p>
@@ -866,7 +866,7 @@ export default function Categories() {
                   onChange={(e) =>
                     setCategoryForm({ ...categoryForm, name: e.target.value })
                   }
-                  placeholder="e.g., Electronics, Clothing"
+                  placeholder={t.categories.enterCategoryName}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
@@ -898,7 +898,7 @@ export default function Categories() {
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <div>
                 <h2 className="text-sm font-semibold text-slate-900 md:text-base">
-                  {editingSubcategory ? 'Edit Subcategory' : 'New Subcategory'}
+                  {editingSubcategory ? t.categories.editSubcategory : t.categories.newSubcategory}
                 </h2>
                 {editingSubcategory && (
                   <p className="text-xs text-slate-500">
@@ -921,7 +921,7 @@ export default function Categories() {
             >
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
-                  Category
+                  {t.categories.selectCategory}
                 </label>
                 <div className="relative">
                   <select
@@ -959,7 +959,7 @@ export default function Categories() {
                   onChange={(e) =>
                     setSubcategoryForm({ ...subcategoryForm, name: e.target.value })
                   }
-                  placeholder="e.g., Smartphones, T-Shirts"
+                  placeholder={t.categories.enterSubcategoryName}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
@@ -976,7 +976,7 @@ export default function Categories() {
                   type="submit"
                   className="rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:text-sm"
                 >
-                  {editingSubcategory ? 'Save changes' : 'Create subcategory'}
+                  {editingSubcategory ? t.categories.saveChanges : t.categories.createSubcategory}
                 </button>
               </div>
             </form>

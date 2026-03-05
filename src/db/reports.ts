@@ -61,7 +61,7 @@ export async function getLabaRugiReport(startDate: string, endDate: string): Pro
 
     // 2. COGS (Harga Pokok Penjualan)
     const cogsResult = await db.select<Array<{ total: number | null }>>(
-      `SELECT SUM(si.quantity * COALESCE(p.price, 0)) as total 
+      `SELECT SUM(si.quantity * COALESCE(p.buy_price, p.price, 0)) as total 
        FROM sales_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
@@ -105,7 +105,7 @@ export async function getLabaRugiDaily(startDate: string, endDate: string): Prom
         SUM(s.total_amount) as revenue
        FROM sales s
        WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2
-       GROUP BY substr(s.created_at, 1, 10)
+       GROUP BY date
        ORDER BY date ASC`,
       [start, end]
     )
@@ -114,12 +114,12 @@ export async function getLabaRugiDaily(startDate: string, endDate: string): Prom
     const cogsRows = await db.select<Array<{ date: string, cogs: number | null }>>(
       `SELECT 
         substr(s.created_at, 1, 10) as date,
-        SUM(si.quantity * COALESCE(p.price, 0)) as cogs
+        SUM(si.quantity * COALESCE(p.buy_price, p.price, 0)) as cogs
        FROM sales_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
        WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2
-       GROUP BY substr(s.created_at, 1, 10)`,
+       GROUP BY date`,
       [start, end]
     )
 

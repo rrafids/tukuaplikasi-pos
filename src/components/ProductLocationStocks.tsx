@@ -20,7 +20,8 @@ import { listUOMs, getUOMConversion } from '../db/uoms'
 import type { UOMRow } from '../db/uoms'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
-import * as XLSX from 'xlsx'
+import { useSettings } from '../contexts/SettingsContext'
+import * as XLSX from 'xlsx-js-style'
 
 type ProductLocationStockFormState = {
   product_id: string
@@ -31,6 +32,7 @@ type ProductLocationStockFormState = {
 export default function ProductLocationStocks() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [products, setProducts] = useState<ProductRow[]>([])
   const [locations, setLocations] = useState<LocationRow[]>([])
   const [uoms, setUOMs] = useState<UOMRow[]>([])
@@ -578,40 +580,50 @@ export default function ProductLocationStocks() {
 
   const handleExportExcel = () => {
     try {
-      const exportData = filteredStocks.map((stock) => {
-        const uomAbbrev = stock.product_uom_id
-          ? uoms.find((u) => u.id === stock.product_uom_id)?.abbreviation ?? '-'
-          : '-'
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-        let stockVal = stock.stock
-        let unit = uomAbbrev
+      const headers = ['Product ID', 'Product Name', 'Location ID', 'Location Name', 'Location Type', 'Stock Quantity', 'UOM']
 
-        if (selectedUOMFilter && stock.convertedStock !== null) {
-          stockVal = stock.convertedStock
-          unit = uoms.find((u) => u.id === selectedUOMFilter)?.abbreviation || unit
-        }
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Stok Lokasi', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'STOK LOKASI', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+        ...filteredStocks.map(stock => {
+          const uomAbbrev = stock.product_uom_id ? uoms.find((u) => u.id === stock.product_uom_id)?.abbreviation ?? '-' : '-'
+          let stockVal = stock.stock
+          let unit = uomAbbrev
+          if (selectedUOMFilter && stock.convertedStock !== null) {
+            stockVal = stock.convertedStock
+            unit = uoms.find((u) => u.id === selectedUOMFilter)?.abbreviation || unit
+          }
+          return [
+            { v: stock.product_id, s: BODY_STYLE },
+            { v: stock.product_name, s: BODY_STYLE },
+            { v: stock.location_id, s: BODY_STYLE },
+            { v: stock.location_name, s: BODY_STYLE },
+            { v: stock.location_type, s: BODY_STYLE },
+            { v: stockVal, s: BODY_STYLE },
+            { v: unit, s: BODY_STYLE },
+          ]
+        })
+      ]
 
-        return {
-          'Product ID': stock.product_id,
-          'Product Name': stock.product_name,
-          'Location ID': stock.location_id,
-          'Location Name': stock.location_name,
-          'Location Type': stock.location_type,
-          'Stock Quantity': stockVal,
-          'UOM': unit,
-        }
-      })
-
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 14 }, { wch: 16 }, { wch: 8 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Location Stocks')
 
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `location_stocks_${dateStr}.xlsx`
-
       XLSX.writeFile(wb, filename)
-
       toast.success(`Exported ${filteredStocks.length} location stocks to ${filename}`)
     } catch (error) {
       console.error('[ProductLocationStocks] Error exporting to Excel:', error)

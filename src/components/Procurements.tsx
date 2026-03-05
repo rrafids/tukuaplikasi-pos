@@ -9,14 +9,13 @@ import {
   XCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listProducts } from '../db/products'
 import type { ProductRow } from '../db/products'
 import { listLocations } from '../db/locations'
 import type { LocationRow } from '../db/locations'
-import { listUOMs } from '../db/uoms'
+import { listUOMs, getUOMConversion, getUOMsWithConversions } from '../db/uoms'
 import type { UOMRow } from '../db/uoms'
-import { getUOMConversion } from '../db/uoms'
 import {
   approveProcurement,
   createProcurement,
@@ -29,7 +28,9 @@ import {
 import type { ProcurementRow, ProcurementStatus } from '../db/procurements'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 import SearchableSelect from './SearchableSelect'
+import ProductSelectionModal from './ProductSelectionModal'
 
 type Procurement = ProcurementRow & {
   product_name: string
@@ -54,13 +55,16 @@ type ProcurementFormState = {
 export default function Procurements() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [procurements, setProcurements] = useState<Procurement[]>([])
   const [products, setProducts] = useState<ProductRow[]>([])
   const [locations, setLocations] = useState<LocationRow[]>([])
   const [uoms, setUOMs] = useState<UOMRow[]>([])
+  const [uomConversionsMap, setUomConversionsMap] = useState<Record<number, number[]>>({})
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showDeleted, setShowDeleted] = useState(false)
+  const [selectingProduct, setSelectingProduct] = useState(false)
   const [activeTab, setActiveTab] = useState<'all' | 'approval' | 'completed'>('all')
   const [form, setForm] = useState<ProcurementFormState>({
     product_id: '',
@@ -187,6 +191,20 @@ export default function Procurements() {
         setProducts(prods.filter((p) => p.deleted_at === null))
         setLocations(locs.filter((l) => l.deleted_at === null))
         setUOMs(uomsList)
+
+        // Preload UOM conversions for all products
+        const conversionsMap: Record<number, number[]> = {}
+        for (const product of prods.filter((p) => p.deleted_at === null && p.uom_id)) {
+          if (product.uom_id) {
+            try {
+              const availableUomIds = await getUOMsWithConversions(product.uom_id)
+              conversionsMap[product.uom_id] = availableUomIds
+            } catch (error) {
+              console.error(`[Procurements] Error loading conversions for product ${product.id}:`, error)
+            }
+          }
+        }
+        setUomConversionsMap(conversionsMap)
       } catch (error) {
         console.error('[Procurements] Error loading:', error)
       }
@@ -244,7 +262,7 @@ export default function Procurements() {
     e.preventDefault()
     try {
       const quantity = parseFloat(form.quantity || '0')
-      const unitPrice = form.unit_price ? parseFloat(form.unit_price) : null
+      const unitPrice = form.unit_price ? parseFloat(form.unit_price.replace(/\./g, '').replace(/,/g, '.') || '0') : null
 
       if (quantity <= 0) {
         toast.error('Quantity must be greater than 0')
@@ -437,19 +455,19 @@ export default function Procurements() {
     const badges = {
       pending: (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-          Pending
+          {t.common.pending}
         </span>
       ),
       approved: (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
           <CheckCircleIcon className="h-3 w-3" />
-          Approved
+          {t.common.approved}
         </span>
       ),
       rejected: (
         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium text-rose-800">
           <XCircleIcon className="h-3 w-3" />
-          Rejected
+          {t.common.rejected}
         </span>
       ),
     }
@@ -458,45 +476,53 @@ export default function Procurements() {
 
   const handleExportExcel = () => {
     try {
-      // Prepare data for export
-      const exportData = filteredProcurements.map((p) => {
-        const total = (p.unit_price ?? 0) * p.quantity
-        return {
-          'ID': p.id,
-          'Date': new Date(p.created_at).toLocaleDateString('id-ID'),
-          'Product': p.product_name,
-          'Location': p.location_name,
-          'Location Type': p.location_type,
-          'Quantity': p.quantity,
-          'Unit Price': p.unit_price ? `Rp ${p.unit_price.toLocaleString('id-ID')}` : '-',
-          'Total': p.unit_price ? `Rp ${total.toLocaleString('id-ID')}` : '-',
-          'Supplier': p.supplier || '-',
-          'Status': p.status.charAt(0).toUpperCase() + p.status.slice(1),
-          'Payment': p.payment_method === 'utang' ? 'Utang' : 'Cash',
-          'Notes': p.notes || '-',
-          'Created At': new Date(p.created_at).toLocaleString('id-ID'),
-          'Updated At': new Date(p.updated_at).toLocaleString('id-ID'),
-        }
-      })
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      // Create workbook and worksheet
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const headers = ['ID', 'Date', 'Product', 'Location', 'Location Type', 'Quantity', 'Unit Price', 'Total', 'Supplier', 'Status', 'Payment', 'Notes']
+
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Pembelian / Procurements', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'DETAIL PEMBELIAN', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+        ...filteredProcurements.map(p => {
+          const total = (p.unit_price ?? 0) * p.quantity
+          return [
+            { v: p.id, s: BODY_STYLE },
+            { v: new Date(p.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
+            { v: p.product_name, s: BODY_STYLE },
+            { v: p.location_name, s: BODY_STYLE },
+            { v: p.location_type, s: BODY_STYLE },
+            { v: p.quantity, s: BODY_STYLE },
+            { v: p.unit_price ? `Rp ${p.unit_price.toLocaleString('id-ID')}` : '-', s: BODY_STYLE },
+            { v: p.unit_price ? `Rp ${total.toLocaleString('id-ID')}` : '-', s: BODY_STYLE },
+            { v: p.supplier || '-', s: BODY_STYLE },
+            { v: p.status.charAt(0).toUpperCase() + p.status.slice(1), s: BODY_STYLE },
+            { v: p.payment_method === 'utang' ? t.common.debt : t.common.cash, s: BODY_STYLE },
+            { v: p.notes || '-', s: BODY_STYLE },
+          ]
+        })
+      ]
+
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Procurements')
 
-      // Generate filename with current date
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `procurements_${dateStr}.xlsx`
-
-      // Write file
       XLSX.writeFile(wb, filename)
-
-      toast.success(`Exported ${exportData.length} procurements to ${filename}`)
+      toast.success(`Exported ${filteredProcurements.length} procurements to ${filename}`)
     } catch (error) {
       console.error('[Procurements] Error exporting to Excel:', error)
-      const errorMessage =
-        error instanceof Error ? error.message : String(error)
+      const errorMessage = error instanceof Error ? error.message : String(error)
       toast.error(`Failed to export: ${errorMessage}`)
     }
   }
@@ -520,8 +546,8 @@ export default function Procurements() {
             className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
-            <span className="hidden md:inline">Export Excel</span>
-            <span className="md:hidden">Export</span>
+            <span className="hidden md:inline">{t.common.exportExcel}</span>
+            <span className="md:hidden">{t.common.exportExcel.split(' ')[0]}</span>
           </button>
           <button
             type="button"
@@ -550,43 +576,40 @@ export default function Procurements() {
         <section className="mb-4 border-b border-slate-200">
           <nav className="-mb-px flex space-x-4">
             <button
-              type="button"
               onClick={() => {
                 setActiveTab('all')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'all'
+              className={`whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium ${activeTab === 'all'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              All
+              {t.common.all}
             </button>
             <button
-              type="button"
               onClick={() => {
                 setActiveTab('approval')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'approval'
+              className={`whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium ${activeTab === 'approval'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              Approval
+              {t.procurements.approval}
             </button>
             <button
-              type="button"
               onClick={() => {
                 setActiveTab('completed')
                 setCurrentPage(1)
               }}
-              className={`whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium ${activeTab === 'completed'
+              className={`whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium ${activeTab === 'completed'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700'
                 }`}
             >
-              Completed
+              {t.procurements.completed}
             </button>
           </nav>
         </section>
@@ -788,21 +811,21 @@ export default function Procurements() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Product</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Quantity</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Unit Price</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Total</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Supplier</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">PIC</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Status</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Payment</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.date}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.nav.products}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.locations.title}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.quantity}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.procurements.unitPrice}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.total}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.procurements.supplier}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.procurements.pic}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.status}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.paymentMethod}</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                    Notes
+                    {t.procurements.notes}
                   </th>
                   <th className="px-3 py-2 text-right md:px-4 md:py-3">
-                    Actions
+                    {t.common.actions}
                   </th>
                 </tr>
               </thead>
@@ -871,7 +894,7 @@ export default function Procurements() {
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs md:px-4 md:py-3 md:text-sm">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${procurement.payment_method === 'utang' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'}`}>
-                          {procurement.payment_method === 'utang' ? 'Utang' : 'Cash'}
+                          {procurement.payment_method === 'utang' ? t.common.debt : t.common.cash}
                         </span>
                       </td>
                       <td className="hidden max-w-xs truncate px-3 py-2 text-xs text-slate-500 md:table-cell md:px-4 md:py-3 md:text-sm">
@@ -888,14 +911,14 @@ export default function Procurements() {
                                     onClick={() => handleApprove(procurement)}
                                     className="rounded border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
                                   >
-                                    Approve
+                                    {t.procurements.approve}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleReject(procurement)}
                                     className="rounded border border-rose-200 bg-rose-50 px-2 py-1 text-xs font-medium text-rose-700 hover:bg-rose-100"
                                   >
-                                    Reject
+                                    {t.procurements.reject}
                                   </button>
                                 </>
                               )}
@@ -906,14 +929,14 @@ export default function Procurements() {
                                     onClick={() => openEdit(procurement)}
                                     className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                                   >
-                                    Edit
+                                    {t.common.edit}
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => handleDelete(procurement)}
                                     className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                                   >
-                                    Delete
+                                    {t.common.delete}
                                   </button>
                                 </>
                               )}
@@ -925,7 +948,7 @@ export default function Procurements() {
                               onClick={() => handleRestore(procurement)}
                               className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
                             >
-                              Restore
+                              {t.procurements.restore}
                             </button>
                           )}
                         </div>
@@ -1020,7 +1043,7 @@ export default function Procurements() {
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previous
+                    {t.common.previous}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -1057,7 +1080,7 @@ export default function Procurements() {
                     disabled={currentPage === totalPages}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Next
+                    {t.common.next}
                   </button>
                   <button
                     type="button"
@@ -1075,271 +1098,346 @@ export default function Procurements() {
       </main>
 
       {/* Slide-over form */}
-      {showForm && (
-        <div className="fixed inset-0 z-20 flex items-center justify-end bg-black/20">
-          <div className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-2xl">
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3">
-              <h2 className="text-sm font-semibold text-slate-900">
-                {editingId == null ? 'New Procurement' : 'Edit Procurement'}
-              </h2>
-              <button
-                type="button"
-                onClick={closeForm}
-                className="rounded p-1 text-slate-400 hover:text-slate-600"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            </div>
+      {
+        showForm && (
+          <div className="fixed inset-0 z-20 flex items-center justify-end bg-black/20">
+            <div className="flex h-full w-full max-w-md flex-col border-l border-slate-200 bg-white shadow-2xl">
+              <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-3">
+                <h2 className="text-sm font-semibold text-slate-900">
+                  {editingId == null ? t.procurements.addProcurement : t.procurements.editProcurement}
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeForm}
+                  className="rounded p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
-              <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Product <span className="text-rose-500">*</span>
-                  </label>
-                  <SearchableSelect
-                    options={products.map((product) => ({
-                      value: product.id,
-                      label: product.name,
-                    }))}
-                    value={form.product_id || null}
-                    onChange={(val) => {
-                      const productId = val ? String(val) : ''
-                      const product = products.find((p) => p.id === Number(val))
-                      setForm({
-                        ...form,
-                        product_id: productId,
-                        product_uom_id: product?.uom_id ?? null,
-                        uom_id: product?.uom_id?.toString() ?? '',
-                        converted_quantity: null,
-                      })
-                    }}
-                    placeholder="Select a product"
-                    required
-                    searchPlaceholder="Search product..."
-                  />
-                  {form.product_uom_id && (
+              <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.nav.products} <span className="text-rose-500">*</span>
+                    </label>
+                    {form.product_id ? (
+                      <div className="flex items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-slate-900">
+                            {products.find((p) => p.id.toString() === form.product_id)?.name}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            Rp {products.find((p) => p.id.toString() === form.product_id)?.price?.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, product_id: '', product_uom_id: null, uom_id: '', unit_price: '', converted_quantity: null }))}
+                          className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        >
+                          <XMarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSelectingProduct(true)}
+                        className="flex w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-sm text-slate-500 shadow-sm hover:bg-slate-50 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      >
+                        <span>{t.procurements.searchProduct || 'Select a product...'}</span>
+                        <ChevronDownIcon className="h-4 w-4 text-slate-400" />
+                      </button>
+                    )}
+                    {form.product_uom_id && (
+                      <p className="text-[10px] text-slate-500">
+                        Base UOM: {uoms.find((u) => u.id === form.product_uom_id)?.abbreviation || ''}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.products.uom}
+                    </label>
+                    <SearchableSelect
+                      options={(() => {
+                        const baseOptions = [{ value: '', label: t.procurements.useProductUOM }]
+                        if (!form.product_uom_id) return baseOptions
+                        const availableUomIds = uomConversionsMap[form.product_uom_id] || [form.product_uom_id]
+                        const availableUoms = uoms.filter((uom) => availableUomIds.includes(uom.id))
+                        return [
+                          ...baseOptions,
+                          ...availableUoms.map((uom) => ({
+                            value: uom.id,
+                            label: `${uom.name} (${uom.abbreviation})`,
+                          })),
+                        ]
+                      })()}
+                      value={form.uom_id || ''}
+                      onChange={async (val) => {
+                        const uomId = val ? String(val) : ''
+                        setForm({ ...form, uom_id: uomId })
+
+                        // Calculate conversion if UOM is different from product's UOM
+                        if (uomId && form.product_uom_id && parseInt(uomId, 10) !== form.product_uom_id) {
+                          const quantity = parseFloat(form.quantity || '0')
+                          if (quantity > 0) {
+                            const rate = await getUOMConversion(parseInt(uomId, 10), form.product_uom_id)
+                            if (rate !== null) {
+                              setForm((prev) => ({
+                                ...prev,
+                                converted_quantity: quantity * rate,
+                              }))
+                            } else {
+                              setForm((prev) => ({ ...prev, converted_quantity: null }))
+                            }
+                          }
+                        } else {
+                          setForm((prev) => ({ ...prev, converted_quantity: null }))
+                        }
+                      }}
+                      placeholder={t.procurements.useProductUOM}
+                      searchPlaceholder={t.procurements.searchUOM}
+                    />
+                    {form.converted_quantity !== null && (
+                      <p className="text-[10px] text-emerald-600">
+                        = {form.converted_quantity.toFixed(2)}{' '}
+                        {form.product_uom_id && uoms.find((u) => u.id === form.product_uom_id)?.abbreviation}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.locations.title} <span className="text-rose-500">*</span>
+                    </label>
+                    <SearchableSelect
+                      options={locations.map((location) => ({
+                        value: location.id,
+                        label: `${location.name} (${location.type})`,
+                      }))}
+                      value={form.location_id || null}
+                      onChange={(val) =>
+                        setForm({ ...form, location_id: val ? String(val) : '' })
+                      }
+                      placeholder={t.procurements.searchLocation}
+                      required
+                      searchPlaceholder={t.procurements.searchLocation}
+                    />
                     <p className="text-[10px] text-slate-500">
-                      Base UOM: {uoms.find((u) => u.id === form.product_uom_id)?.abbreviation || ''}
+                      {t.procurements.stockHint}
                     </p>
-                  )}
-                </div>
+                  </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    UOM
-                  </label>
-                  <SearchableSelect
-                    options={[
-                      { value: '', label: 'Use product UOM' },
-                      ...uoms.map((uom) => ({
-                        value: uom.id,
-                        label: `${uom.name} (${uom.abbreviation})`,
-                      })),
-                    ]}
-                    value={form.uom_id || ''}
-                    onChange={async (val) => {
-                      const uomId = val ? String(val) : ''
-                      setForm({ ...form, uom_id: uomId })
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.common.quantity} <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={0.01}
+                      step="0.01"
+                      required
+                      value={form.quantity}
+                      onChange={async (e) => {
+                        const quantity = e.target.value
+                        setForm({ ...form, quantity })
 
-                      // Calculate conversion if UOM is different from product's UOM
-                      if (uomId && form.product_uom_id && parseInt(uomId, 10) !== form.product_uom_id) {
-                        const quantity = parseFloat(form.quantity || '0')
-                        if (quantity > 0) {
-                          const rate = await getUOMConversion(parseInt(uomId, 10), form.product_uom_id)
-                          if (rate !== null) {
-                            setForm((prev) => ({
-                              ...prev,
-                              converted_quantity: quantity * rate,
-                            }))
-                          } else {
-                            setForm((prev) => ({ ...prev, converted_quantity: null }))
+                        // Recalculate conversion if UOM is different
+                        if (form.uom_id && form.product_uom_id && parseInt(form.uom_id, 10) !== form.product_uom_id) {
+                          const qty = parseFloat(quantity || '0')
+                          if (qty > 0) {
+                            const rate = await getUOMConversion(parseInt(form.uom_id, 10), form.product_uom_id)
+                            if (rate !== null) {
+                              setForm((prev) => ({
+                                ...prev,
+                                converted_quantity: qty * rate,
+                              }))
+                            } else {
+                              setForm((prev) => ({ ...prev, converted_quantity: null }))
+                            }
                           }
+                        } else {
+                          setForm((prev) => ({ ...prev, converted_quantity: null }))
                         }
-                      } else {
-                        setForm((prev) => ({ ...prev, converted_quantity: null }))
-                      }
-                    }}
-                    placeholder="Use product UOM"
-                    searchPlaceholder="Search UOM..."
-                  />
-                  {form.converted_quantity !== null && (
-                    <p className="text-[10px] text-emerald-600">
-                      = {form.converted_quantity.toFixed(2)}{' '}
-                      {form.product_uom_id && uoms.find((u) => u.id === form.product_uom_id)?.abbreviation}
+                      }}
+                      placeholder={t.procurements.quantityPlaceholder}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    />
+                    <p className="text-[10px] text-slate-500">
+                      This will automatically add to the location stock (converted to base UOM if different)
                     </p>
-                  )}
-                </div>
+                  </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Location <span className="text-rose-500">*</span>
-                  </label>
-                  <SearchableSelect
-                    options={locations.map((location) => ({
-                      value: location.id,
-                      label: `${location.name} (${location.type})`,
-                    }))}
-                    value={form.location_id || null}
-                    onChange={(val) =>
-                      setForm({ ...form, location_id: val ? String(val) : '' })
-                    }
-                    placeholder="Select a location"
-                    required
-                    searchPlaceholder="Search location..."
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Quantity <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={0.01}
-                    step="0.01"
-                    required
-                    value={form.quantity}
-                    onChange={async (e) => {
-                      const quantity = e.target.value
-                      setForm({ ...form, quantity })
-
-                      // Recalculate conversion if UOM is different
-                      if (form.uom_id && form.product_uom_id && parseInt(form.uom_id, 10) !== form.product_uom_id) {
-                        const qty = parseFloat(quantity || '0')
-                        if (qty > 0) {
-                          const rate = await getUOMConversion(parseInt(form.uom_id, 10), form.product_uom_id)
-                          if (rate !== null) {
-                            setForm((prev) => ({
-                              ...prev,
-                              converted_quantity: qty * rate,
-                            }))
-                          } else {
-                            setForm((prev) => ({ ...prev, converted_quantity: null }))
-                          }
-                        }
-                      } else {
-                        setForm((prev) => ({ ...prev, converted_quantity: null }))
-                      }
-                    }}
-                    placeholder="0"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                  <p className="text-[10px] text-slate-500">
-                    This will automatically add to the location stock (converted to base UOM if different)
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Unit Price (Optional)
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={form.unit_price}
-                    onChange={(e) =>
-                      setForm({ ...form, unit_price: e.target.value })
-                    }
-                    placeholder="0.00"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Supplier (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.supplier}
-                    onChange={(e) =>
-                      setForm({ ...form, supplier: e.target.value })
-                    }
-                    placeholder="Supplier name"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    PIC (Person In Charge) (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={form.pic}
-                    onChange={(e) =>
-                      setForm({ ...form, pic: e.target.value })
-                    }
-                    placeholder="Person in charge name"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-700">
-                    Notes (Optional)
-                  </label>
-                  <textarea
-                    value={form.notes}
-                    onChange={(e) =>
-                      setForm({ ...form, notes: e.target.value })
-                    }
-                    placeholder="Additional notes..."
-                    rows={3}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  />
-                </div>
-
-                {editingProcurement && (
-                  <div className="grid gap-3 rounded-md bg-slate-50 p-3 text-[10px] text-slate-500 md:grid-cols-2">
-                    <div>
-                      <div className="font-semibold text-slate-600">
-                        Created at
-                      </div>
-                      <div>
-                        {new Date(
-                          editingProcurement.created_at,
-                        ).toLocaleString()}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="font-semibold text-slate-600">
-                        Updated at
-                      </div>
-                      <div>
-                        {new Date(
-                          editingProcurement.updated_at,
-                        ).toLocaleString()}
-                      </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.procurements.unitPrice} ({t.common.optional})
+                    </label>
+                    <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
+                      <span className="text-xs text-slate-500">Rp</span>
+                      <input
+                        type="text"
+                        value={form.unit_price}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '')
+                          setForm(prev => ({ ...prev, unit_price: val ? parseInt(val).toLocaleString('id-ID') : '' }))
+                        }}
+                        placeholder="0"
+                        className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
+                      />
                     </div>
                   </div>
-                )}
-              </div>
 
-              <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3">
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={closeForm}
-                    className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
-                  >
-                    {editingId == null ? 'Create' : 'Update'}
-                  </button>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.common.paymentMethod}
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value="cash"
+                          checked={form.payment_method === 'cash'}
+                          onChange={() => setForm({ ...form, payment_method: 'cash' })}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300"
+                        />
+                        <span className="text-sm text-slate-700">{t.common.cash}</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="payment_method"
+                          value="utang"
+                          checked={form.payment_method === 'utang'}
+                          onChange={() => setForm({ ...form, payment_method: 'utang' })}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-slate-300"
+                        />
+                        <span className="text-sm text-slate-700">{t.common.debt}</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.procurements.supplier} ({t.common.optional})
+                    </label>
+                    <input
+                      type="text"
+                      value={form.supplier}
+                      onChange={(e) =>
+                        setForm({ ...form, supplier: e.target.value })
+                      }
+                      placeholder={t.procurements.enterSupplierName}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.procurements.pic} ({t.common.optional})
+                    </label>
+                    <input
+                      type="text"
+                      value={form.pic}
+                      onChange={(e) =>
+                        setForm({ ...form, pic: e.target.value })
+                      }
+                      placeholder={t.procurements.enterPICName}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-slate-700">
+                      {t.procurements.notes} ({t.common.optional})
+                    </label>
+                    <textarea
+                      value={form.notes}
+                      onChange={(e) =>
+                        setForm({ ...form, notes: e.target.value })
+                      }
+                      placeholder={t.procurements.enterNotes}
+                      rows={3}
+                      className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    />
+                  </div>
+
+                  {editingProcurement && (
+                    <div className="grid gap-3 rounded-md bg-slate-50 p-3 text-[10px] text-slate-500 md:grid-cols-2">
+                      <div>
+                        <div className="font-semibold text-slate-600">
+                          Created at
+                        </div>
+                        <div>
+                          {new Date(
+                            editingProcurement.created_at,
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-600">
+                          Updated at
+                        </div>
+                        <div>
+                          {new Date(
+                            editingProcurement.updated_at,
+                          ).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </form>
+
+                <div className="shrink-0 border-t border-slate-200 bg-white px-4 py-3">
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={closeForm}
+                      className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      {t.common.cancel}
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
+                    >
+                      {editingId == null ? t.procurements.create : t.procurements.update}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
+        )
+      }
+      {/* Product Selection Modal */}
+      {selectingProduct && (
+        <ProductSelectionModal
+          isOpen={selectingProduct}
+          onClose={() => setSelectingProduct(false)}
+          products={products}
+          productStocks={{}} // Procurements don't strictly require local stock filters like Sales, passing empty for now
+          uoms={uoms}
+          disableOutOfStock={false}
+          showStock={false}
+          onSelect={(productId) => {
+            const product = products.find(p => p.id === productId)
+            if (product) {
+              setForm((prev) => ({
+                ...prev,
+                product_id: product.id.toString(),
+                product_uom_id: product.uom_id ?? null,
+                uom_id: product.uom_id?.toString() ?? '',
+                unit_price: product.buy_price?.toString() ?? product.price?.toString() ?? '',
+                converted_quantity: null,
+              }))
+            }
+            setSelectingProduct(false)
+          }}
+        />
       )}
-    </div>
+    </div >
   )
 }
-

@@ -92,7 +92,7 @@ export default function Users() {
         setRoles(rolesList)
       } catch (error) {
         console.error('[Users] Error loading:', error)
-        toast.error('Failed to load users')
+        toast.error(t.users.failedToLoad)
       }
     }
     void load()
@@ -140,7 +140,7 @@ export default function Users() {
     try {
       if (editingId == null) {
         if (!form.password.trim()) {
-          toast.error('Password is required')
+          toast.error(t.users.passwordRequired)
           return
         }
         const created = await createUser({
@@ -173,7 +173,7 @@ export default function Users() {
           )
           toast.success(t.users.updated)
         } else {
-          toast.error(t.users.updated.replace('successfully', 'failed').replace('berhasil', 'gagal'))
+          toast.error(t.users.failedToUpdate)
         }
       }
       closeForm()
@@ -189,10 +189,10 @@ export default function Users() {
   const handleDelete = async (user: UserWithRole) => {
     if (user.deleted_at) return
     if (user.id === currentUser?.id) {
-      toast.error('You cannot delete your own account')
+      toast.error(t.users.cannotDeleteOwnAccount)
       return
     }
-    if (!confirm(`Are you sure you want to delete user "${user.username}"?`)) {
+    if (!confirm(t.users.deleteConfirm)) {
       return
     }
     try {
@@ -203,11 +203,11 @@ export default function Users() {
         )
         toast.success(t.users.deleted)
       } else {
-        toast.error('Failed to delete user')
+        toast.error(t.users.failedToDelete)
       }
     } catch (error) {
       console.error('[Users] Error deleting user:', error)
-      toast.error('Failed to delete user')
+      toast.error(t.users.failedToDelete)
     }
   }
 
@@ -221,11 +221,11 @@ export default function Users() {
         )
         toast.success(t.users.restored)
       } else {
-        toast.error('Failed to restore user')
+        toast.error(t.users.failedToRestore)
       }
     } catch (error) {
       console.error('[Users] Error restoring user:', error)
-      toast.error('Failed to restore user')
+      toast.error(t.users.failedToRestore)
     }
   }
 
@@ -250,7 +250,7 @@ export default function Users() {
               : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
-            {showDeleted ? 'Show Active' : 'Show Deleted'}
+            {showDeleted ? t.common.showActive : t.common.showDeleted}
           </button>
           <button
             type="button"
@@ -274,7 +274,7 @@ export default function Users() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search users..."
+                  placeholder={t.users.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -295,7 +295,7 @@ export default function Users() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="">{t.common.all} Roles</option>
+                    <option value="">{t.common.all} {t.users.role}</option>
                     {roles.map((role) => (
                       <option key={role.id} value={role.id}>
                         {role.name}
@@ -343,7 +343,7 @@ export default function Users() {
                       <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
                         {user.is_superadmin === 1 ? (
                           <span className="inline-flex items-center rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-medium text-purple-800">
-                            Superadmin
+                            {t.users.isSuperadmin}
                           </span>
                         ) : user.role_name ? (
                           <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-800">
@@ -355,9 +355,9 @@ export default function Users() {
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
                         {user.is_superadmin === 1 ? (
-                          <span className="text-emerald-600">Yes</span>
+                          <span className="text-emerald-600">{t.common.yes}</span>
                         ) : (
-                          <span className="text-slate-400">No</span>
+                          <span className="text-slate-400">{t.common.no}</span>
                         )}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-right text-xs md:px-4 md:py-3 md:text-sm">
@@ -369,7 +369,7 @@ export default function Users() {
                                 onClick={() => openEdit(user)}
                                 className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                               >
-                                Edit
+                                {t.common.edit}
                               </button>
                               {user.id !== currentUser?.id && (
                                 <button
@@ -377,7 +377,7 @@ export default function Users() {
                                   onClick={() => handleDelete(user)}
                                   className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                                 >
-                                  Delete
+                                  {t.common.delete}
                                 </button>
                               )}
                             </>
@@ -388,7 +388,7 @@ export default function Users() {
                               onClick={() => handleRestore(user)}
                               className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
                             >
-                              Restore
+                              {t.common.restore}
                             </button>
                           )}
                         </div>
@@ -400,11 +400,11 @@ export default function Users() {
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-xs text-slate-500">
                       {searchQuery || roleFilter !== null
-                        ? 'No users match your search or filter criteria.'
-                        : 'No users found. Click '}
+                        ? t.users.noUsersMatch
+                        : t.users.noUsersFound}
                       {!searchQuery && roleFilter === null && (
                         <>
-                          <span className="font-medium text-slate-900">New User</span> to create one.
+                          <span className="font-medium text-slate-900">{t.users.newUser}</span> {t.users.toCreateOne}
                         </>
                       )}
                     </td>
@@ -420,19 +420,19 @@ export default function Users() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="text-xs text-slate-500">
-                    Showing{' '}
+                    {t.common.showing}{' '}
                     <span className="font-medium text-slate-900">
                       {startIndex + 1}
                     </span>{' '}
-                    to{' '}
+                    {t.common.to}{' '}
                     <span className="font-medium text-slate-900">
                       {Math.min(endIndex, filteredUsers.length)}
                     </span>{' '}
-                    of{' '}
+                    {t.common.of}{' '}
                     <span className="font-medium text-slate-900">
                       {filteredUsers.length}
                     </span>{' '}
-                    results
+                    {t.common.results}
                   </div>
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-slate-500">Items per page:</label>
@@ -539,7 +539,7 @@ export default function Users() {
               <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Username <span className="text-rose-500">*</span>
+                    {t.users.username} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -554,7 +554,7 @@ export default function Users() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    {t.users.password} {editingId != null && <span className="text-slate-500">(leave blank to keep current)</span>}
+                    {t.users.password} {editingId != null && <span className="text-slate-500">({t.users.passwordHint})</span>}
                     {editingId == null && <span className="text-rose-500">*</span>}
                   </label>
                   <input
@@ -570,7 +570,7 @@ export default function Users() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Role
+                    {t.users.role}
                   </label>
                   <select
                     value={form.role_id}
@@ -620,13 +620,13 @@ export default function Users() {
                     onClick={closeForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
-                    {editingId == null ? 'Create User' : 'Update User'}
+                    {editingId == null ? t.users.addUser : t.users.updateUser}
                   </button>
                 </div>
               </div>

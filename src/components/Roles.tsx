@@ -95,7 +95,7 @@ export default function Roles() {
         setRoles(rolesList)
       } catch (error) {
         console.error('[Roles] Error loading:', error)
-        toast.error('Failed to load roles')
+        toast.error(t.roles.failedToLoad)
       }
     }
     void load()
@@ -174,7 +174,7 @@ export default function Roles() {
           )
           toast.success(t.roles.updated)
         } else {
-          toast.error(t.roles.updated.replace('successfully', 'failed').replace('berhasil', 'gagal'))
+          toast.error(t.roles.failedToUpdate)
         }
       }
       closeForm()
@@ -183,13 +183,13 @@ export default function Roles() {
       console.error('[Roles] Error saving role:', error)
       const errorMessage =
         error instanceof Error ? error.message : String(error)
-      toast.error(`Failed to save role: ${errorMessage}`)
+      toast.error(`${t.roles.failedToUpdate}: ${errorMessage}`)
     }
   }
 
   const handleDelete = async (role: RoleWithPermissions) => {
     if (role.deleted_at) return
-    if (!confirm(`Are you sure you want to delete role "${role.name}"?`)) {
+    if (!confirm(t.roles.deleteConfirm)) {
       return
     }
     try {
@@ -200,11 +200,11 @@ export default function Roles() {
         )
         toast.success(t.roles.deleted)
       } else {
-        toast.error('Failed to delete role')
+        toast.error(t.roles.failedToDelete)
       }
     } catch (error) {
       console.error('[Roles] Error deleting role:', error)
-      toast.error('Failed to delete role')
+      toast.error(t.roles.failedToDelete)
     }
   }
 
@@ -218,11 +218,11 @@ export default function Roles() {
         )
         toast.success(t.roles.restored)
       } else {
-        toast.error('Failed to restore role')
+        toast.error(t.roles.failedToRestore)
       }
     } catch (error) {
       console.error('[Roles] Error restoring role:', error)
-      toast.error('Failed to restore role')
+      toast.error(t.roles.failedToRestore)
     }
   }
 
@@ -247,7 +247,7 @@ export default function Roles() {
               : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
               }`}
           >
-            {showDeleted ? 'Show Active' : 'Show Deleted'}
+            {showDeleted ? t.common.showActive : t.common.showDeleted}
           </button>
           <button
             type="button"
@@ -271,7 +271,7 @@ export default function Roles() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search roles..."
+                  placeholder={t.roles.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -289,10 +289,10 @@ export default function Roles() {
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-3 py-2 md:px-4 md:py-3">ID</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Name</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.common.name}</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">{t.common.description}</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">{t.roles.permissions}</th>
-                  <th className="px-3 py-2 text-right md:px-4 md:py-3">Actions</th>
+                  <th className="px-3 py-2 text-right md:px-4 md:py-3">{t.common.actions}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -343,14 +343,14 @@ export default function Roles() {
                                 onClick={() => openEdit(role)}
                                 className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                               >
-                                Edit
+                                {t.common.edit}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDelete(role)}
                                 className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                               >
-                                Delete
+                                {t.common.delete}
                               </button>
                             </>
                           )}
@@ -372,11 +372,11 @@ export default function Roles() {
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-xs text-slate-500">
                       {searchQuery
-                        ? 'No roles match your search criteria.'
-                        : 'No roles found. Click '}
+                        ? t.roles.noRolesMatch
+                        : t.roles.noRolesFound}
                       {!searchQuery && (
                         <>
-                          <span className="font-medium text-slate-900">New Role</span> to create one.
+                          <span className="font-medium text-slate-900">{t.roles.newRole}</span> {t.users.toCreateOne}
                         </>
                       )}
                     </td>
@@ -392,19 +392,19 @@ export default function Roles() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="text-xs text-slate-500">
-                    Showing{' '}
+                    {t.common.showing}{' '}
                     <span className="font-medium text-slate-900">
                       {startIndex + 1}
                     </span>{' '}
-                    to{' '}
+                    {t.common.to}{' '}
                     <span className="font-medium text-slate-900">
                       {Math.min(endIndex, filteredRoles.length)}
                     </span>{' '}
-                    of{' '}
+                    {t.common.of}{' '}
                     <span className="font-medium text-slate-900">
                       {filteredRoles.length}
                     </span>{' '}
-                    results
+                    {t.common.results}
                   </div>
                   <div className="flex items-center gap-2">
                     <label className="text-xs text-slate-500">Items per page:</label>
@@ -438,7 +438,7 @@ export default function Roles() {
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previous
+                    {t.common.previous}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -473,7 +473,7 @@ export default function Roles() {
                     disabled={currentPage === totalPages}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Next
+                    {t.common.next}
                   </button>
                   <button
                     type="button"
@@ -526,7 +526,7 @@ export default function Roles() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Description
+                    {t.common.description}
                   </label>
                   <textarea
                     value={form.description}
@@ -540,7 +540,7 @@ export default function Roles() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Permissions
+                    {t.roles.permissions}
                   </label>
                   <div className="grid grid-cols-2 gap-2 rounded-lg border border-slate-200 p-4 max-h-64 overflow-y-auto">
                     {AVAILABLE_VIEWS.map((viewName) => (
@@ -561,7 +561,7 @@ export default function Roles() {
                     ))}
                   </div>
                   <p className="text-[10px] text-slate-500">
-                    Select which menu items users with this role can access
+                    {t.roles.permissionsHint}
                   </p>
                 </div>
               </div>
@@ -573,13 +573,13 @@ export default function Roles() {
                     onClick={closeForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
-                    {editingId == null ? 'Create Role' : 'Update Role'}
+                    {editingId == null ? t.roles.addRole : t.roles.updateRole}
                   </button>
                 </div>
               </div>

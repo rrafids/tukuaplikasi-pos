@@ -306,7 +306,7 @@ export default function UOMs() {
       <header className="flex items-center justify-between border-b border-slate-200 bg-white/80 px-4 py-3 shadow-sm backdrop-blur">
         <div>
           <h1 className="text-base font-semibold text-slate-900 md:text-lg">
-            Units of Measurement
+            {t.uoms.title}
           </h1>
           <p className="text-xs text-slate-500 md:text-sm">
             {t.uoms.description}
@@ -343,7 +343,7 @@ export default function UOMs() {
               {t.uoms.title}
             </h2>
             <p className="text-xs text-slate-500">
-              {t.common.showing} {startIndex + 1}-{Math.min(endIndex, filteredUOMs.length)} {t.common.of} {filteredUOMs.length} {filteredUOMs.length === 1 ? 'unit' : 'units'}
+              {t.common.showing} {startIndex + 1}-{Math.min(endIndex, filteredUOMs.length)} {t.common.of} {filteredUOMs.length} {filteredUOMs.length === 1 ? t.common.unit : t.common.units}
               {showDeleted ? ` (${t.common.showDeleted.toLowerCase()})` : ''}
             </p>
 
@@ -352,7 +352,7 @@ export default function UOMs() {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search UOMs by name or abbreviation..."
+                placeholder={t.uoms.searchUOMs}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-md border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
@@ -433,13 +433,15 @@ export default function UOMs() {
             {visibleUOMs.length === 0 && (
               <div className="px-4 py-8 text-center text-xs text-slate-500">
                 {searchQuery
-                  ? 'No UOMs match your search criteria.'
-                  : 'No UOMs found. Click '}
+                  ? t.uoms.noUOMsMatch
+                  : t.uoms.noUOMsFound}
                 {!searchQuery && (
-                  <>
-                    <span className="font-medium text-slate-900">New UOM</span>{' '}
-                    to add one.
-                  </>
+                  <button
+                    onClick={openCreate}
+                    className="mt-2 block w-full text-center font-medium text-primary-600 hover:text-primary-700"
+                  >
+                    {t.uoms.clickNewUOM}
+                  </button>
                 )}
               </div>
             )}
@@ -517,8 +519,8 @@ export default function UOMs() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -559,7 +561,7 @@ export default function UOMs() {
                   {t.uoms.conversions}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Define conversion rates between different UOMs
+                  {t.uoms.conversionsDescription}
                 </p>
               </div>
               <button
@@ -689,8 +691,8 @@ export default function UOMs() {
                           type="button"
                           onClick={() => setConversionCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${conversionCurrentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -757,14 +759,14 @@ export default function UOMs() {
                   onChange={(e) =>
                     setForm({ ...form, name: e.target.value })
                   }
-                  placeholder="e.g., Kilogram, Liter, Piece"
+                  placeholder={t.uoms.enterUOMName}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
-                  Abbreviation
+                  {t.uoms.abbreviation}
                 </label>
                 <input
                   type="text"
@@ -774,11 +776,11 @@ export default function UOMs() {
                   onChange={(e) =>
                     setForm({ ...form, abbreviation: e.target.value.toUpperCase() })
                   }
-                  placeholder="e.g., KG, L, PCS"
+                  placeholder={t.uoms.enterAbbreviation}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 uppercase"
                 />
                 <p className="text-[10px] text-slate-500">
-                  Abbreviation will be automatically converted to uppercase
+                  {t.uoms.abbreviationHint}
                 </p>
               </div>
 
@@ -812,7 +814,7 @@ export default function UOMs() {
                   {editingConversionId == null ? t.uoms.addConversion : t.uoms.editConversion}
                 </h2>
                 <p className="text-xs text-slate-500">
-                  Define how many units of one UOM equal another
+                  {t.uoms.defineConversion}
                 </p>
               </div>
               <button
@@ -890,11 +892,11 @@ export default function UOMs() {
                   onChange={(e) =>
                     setConversionForm({ ...conversionForm, conversion_rate: e.target.value })
                   }
-                  placeholder="e.g., 1000 (1 KG = 1000 G)"
+                  placeholder={t.uoms.conversionRatePlaceholder}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 <p className="text-[10px] text-slate-500">
-                  How many units of the "To UOM" equal 1 unit of the "From UOM"
+                  {t.uoms.conversionHint}
                 </p>
                 {conversionForm.from_uom_id && conversionForm.to_uom_id && conversionForm.conversion_rate && (
                   <p className="text-[10px] font-medium text-primary-600">

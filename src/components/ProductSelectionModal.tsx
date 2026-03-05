@@ -10,6 +10,8 @@ interface ProductSelectionModalProps {
   products: ProductRow[]
   productStocks: Record<number, number>
   uoms: UOMRow[]
+  disableOutOfStock?: boolean
+  showStock?: boolean
 }
 
 export default function ProductSelectionModal({
@@ -19,6 +21,8 @@ export default function ProductSelectionModal({
   products,
   productStocks,
   uoms,
+  disableOutOfStock = true,
+  showStock = true,
 }: ProductSelectionModalProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
@@ -110,7 +114,7 @@ export default function ProductSelectionModal({
                       onSelect(product.id)
                     }}
                     className="group flex flex-col items-start rounded-lg border border-slate-200 bg-white p-3 text-left shadow-sm transition-all hover:border-primary-300 hover:bg-primary-50 hover:shadow focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={stock <= 0}
+                    disabled={disableOutOfStock && stock <= 0}
                   >
                     <div className="flex w-full items-start justify-between gap-2">
                       <span className="font-medium text-slate-900 line-clamp-2 group-hover:text-primary-700">{product.name}</span>
@@ -118,11 +122,13 @@ export default function ProductSelectionModal({
                         Rp {product.price?.toLocaleString('id-ID') || 0}
                       </span>
                     </div>
-                    <div className="mt-2 flex w-full justify-end text-xs">
-                      <span className={`font-medium px-2 py-0.5 rounded-full ${stock > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                        {stock} {uom?.abbreviation || ''}
-                      </span>
-                    </div>
+                    {showStock && (
+                      <div className="mt-2 flex w-full justify-end text-xs">
+                        <span className={`font-medium px-2 py-0.5 rounded-full ${stock > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                          {stock} {uom?.abbreviation || ''}
+                        </span>
+                      </div>
+                    )}
                   </button>
                 )
               })}
@@ -184,8 +190,8 @@ export default function ProductSelectionModal({
                         type="button"
                         onClick={() => setCurrentPage(pageNum)}
                         className={`rounded-md px-3 py-1.5 text-xs font-medium ${currentPage === pageNum
-                            ? 'bg-primary-600 text-white shadow-sm'
-                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'bg-primary-600 text-white shadow-sm'
+                          : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                       >
                         {pageNum}

@@ -5,7 +5,7 @@ import {
   DocumentTextIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listAuditTrail } from '../db/auditTrail'
 import type {
   AuditTrailWithDetails,
@@ -14,10 +14,12 @@ import type {
 } from '../db/auditTrail'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 export default function AuditTrail() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [auditEntries, setAuditEntries] = useState<AuditTrailWithDetails[]>([])
 
   // Search and filter state
@@ -38,7 +40,7 @@ export default function AuditTrail() {
         setAuditEntries(entries)
       } catch (error) {
         console.error('[AuditTrail] Error loading:', error)
-        toast.error('Failed to load audit trail data.')
+        toast.error(t.auditTrail.failedToLoad)
       }
     }
     void load()
@@ -118,32 +120,32 @@ export default function AuditTrail() {
     const badges = {
       create: (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
-          Create
+          {t.auditTrail.actions.create}
         </span>
       ),
       update: (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-800">
-          Update
+          {t.auditTrail.actions.update}
         </span>
       ),
       delete: (
         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium text-rose-800">
-          Delete
+          {t.auditTrail.actions.delete}
         </span>
       ),
       restore: (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-          Restore
+          {t.auditTrail.actions.restore}
         </span>
       ),
       approve: (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-800">
-          Approve
+          {t.auditTrail.actions.approve}
         </span>
       ),
       reject: (
         <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-800">
-          Reject
+          {t.auditTrail.actions.reject}
         </span>
       ),
     }
@@ -154,67 +156,67 @@ export default function AuditTrail() {
     const badges = {
       product: (
         <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-800">
-          Product
+          {t.auditTrail.entities.product}
         </span>
       ),
       category: (
         <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-medium text-pink-800">
-          Category
+          {t.auditTrail.entities.category}
         </span>
       ),
       subcategory: (
         <span className="inline-flex items-center gap-1 rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-medium text-pink-800">
-          Subcategory
+          {t.auditTrail.entities.subcategory}
         </span>
       ),
       uom: (
         <span className="inline-flex items-center gap-1 rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-medium text-cyan-800">
-          UOM
+          {t.auditTrail.entities.uom}
         </span>
       ),
       location: (
         <span className="inline-flex items-center gap-1 rounded-full bg-teal-100 px-2 py-0.5 text-[10px] font-medium text-teal-800">
-          Location
+          {t.auditTrail.entities.location}
         </span>
       ),
       product_location_stock: (
         <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-medium text-orange-800">
-          Stock
+          {t.auditTrail.entities.product_location_stock}
         </span>
       ),
       procurement: (
         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-800">
-          Procurement
+          {t.auditTrail.entities.procurement}
         </span>
       ),
       disposal: (
         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-medium text-rose-800">
-          Disposal
+          {t.auditTrail.entities.disposal}
         </span>
       ),
       sale: (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary-100 px-2 py-0.5 text-[10px] font-medium text-primary-800">
-          Sale
+          {t.auditTrail.entities.sale}
         </span>
       ),
       stock_opname: (
         <span className="inline-flex items-center gap-1 rounded-full bg-cyan-100 px-2 py-0.5 text-[10px] font-medium text-cyan-800">
-          Stock Opname
+          {t.auditTrail.entities.stock_opname}
         </span>
       ),
       user: (
         <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-medium text-violet-800">
-          User
+          {t.auditTrail.entities.user}
         </span>
       ),
       role: (
         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800">
-          Role
+          {t.auditTrail.entities.role}
         </span>
       ),
       uom_conversion: (
         <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-medium text-sky-800">
-          UOM Conversion
+          {t.auditTrail.entities.uom_conversion}
         </span>
       ),
     }
@@ -223,54 +225,57 @@ export default function AuditTrail() {
 
   const handleExportExcel = () => {
     try {
-      const exportData = filteredEntries.map((entry) => {
-        let oldValues = '-'
-        let newValues = '-'
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-        try {
-          if (entry.old_values) {
-            const parsed = JSON.parse(entry.old_values)
-            oldValues = JSON.stringify(parsed, null, 2)
-          }
-          if (entry.new_values) {
-            const parsed = JSON.parse(entry.new_values)
-            newValues = JSON.stringify(parsed, null, 2)
-          }
-        } catch (error) {
-          // If parsing fails, use raw string
-          oldValues = entry.old_values || '-'
-          newValues = entry.new_values || '-'
-        }
+      const headers = ['ID', 'Date', 'Time', 'Entity Type', 'Entity ID', 'Entity Name', 'Action', 'Old Values', 'New Values', 'Notes', 'Created At']
 
-        return {
-          'ID': entry.id,
-          'Date': new Date(entry.created_at).toLocaleDateString('id-ID'),
-          'Time': new Date(entry.created_at).toLocaleTimeString('id-ID'),
-          'Entity Type': entry.entity_type,
-          'Entity ID': entry.entity_id,
-          'Entity Name': entry.entity_name || '-',
-          'Action': entry.action.charAt(0).toUpperCase() + entry.action.slice(1),
-          'Old Values': oldValues,
-          'New Values': newValues,
-          'Notes': entry.notes || '-',
-          'Created At': new Date(entry.created_at).toLocaleString('id-ID'),
-        }
-      })
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Audit Trail', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'AUDIT TRAIL', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+        ...filteredEntries.map(entry => {
+          let oldValues = '-'
+          let newValues = '-'
+          try {
+            if (entry.old_values) oldValues = JSON.stringify(JSON.parse(entry.old_values), null, 2)
+            if (entry.new_values) newValues = JSON.stringify(JSON.parse(entry.new_values), null, 2)
+          } catch { oldValues = entry.old_values || '-'; newValues = entry.new_values || '-' }
+          return [
+            { v: entry.id, s: BODY_STYLE },
+            { v: new Date(entry.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
+            { v: new Date(entry.created_at).toLocaleTimeString('id-ID'), s: BODY_STYLE },
+            { v: entry.entity_type, s: BODY_STYLE },
+            { v: entry.entity_id, s: BODY_STYLE },
+            { v: entry.entity_name || '-', s: BODY_STYLE },
+            { v: entry.action.charAt(0).toUpperCase() + entry.action.slice(1), s: BODY_STYLE },
+            { v: oldValues, s: BODY_STYLE },
+            { v: newValues, s: BODY_STYLE },
+            { v: entry.notes || '-', s: BODY_STYLE },
+            { v: new Date(entry.created_at).toLocaleString('id-ID'), s: BODY_STYLE },
+          ]
+        })
+      ]
 
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 20 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Audit Trail')
 
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `audit_trail_${dateStr}.xlsx`
-
       XLSX.writeFile(wb, filename)
-
-      toast.success(`Exported ${exportData.length} audit trail entries to ${filename}`)
+      toast.success(t.auditTrail.exportSuccess.replace('{count}', filteredEntries.length.toString()).replace('{filename}', filename))
     } catch (error) {
       console.error('[AuditTrail] Error exporting to Excel:', error)
-      toast.error('Failed to export audit trail to Excel.')
+      toast.error(t.auditTrail.exportFailed)
     }
   }
 
@@ -293,8 +298,8 @@ export default function AuditTrail() {
             className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
-            <span className="hidden md:inline">Export Excel</span>
-            <span className="md:hidden">Export</span>
+            <span className="hidden md:inline">{t.auditTrail.exportExcel}</span>
+            <span className="md:hidden">{t.auditTrail.export}</span>
           </button>
         </div>
       </header>
@@ -307,7 +312,7 @@ export default function AuditTrail() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Total Entries
+                  {t.auditTrail.totalEntries}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {totalEntries}
@@ -322,7 +327,7 @@ export default function AuditTrail() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Creates
+                  {t.auditTrail.creates}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {createCount}
@@ -337,7 +342,7 @@ export default function AuditTrail() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Updates
+                  {t.auditTrail.updates}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {updateCount}
@@ -352,7 +357,7 @@ export default function AuditTrail() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Deletes
+                  {t.auditTrail.deletes}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {deleteCount}
@@ -375,7 +380,7 @@ export default function AuditTrail() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by entity name, type, or notes..."
+                  placeholder={t.auditTrail.searchPlaceholder}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
@@ -398,16 +403,16 @@ export default function AuditTrail() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="all">All Entities</option>
-                    <option value="product">Product</option>
-                    <option value="category">Category</option>
-                    <option value="subcategory">Subcategory</option>
-                    <option value="uom">UOM</option>
-                    <option value="location">Location</option>
-                    <option value="product_location_stock">Stock</option>
-                    <option value="procurement">Procurement</option>
-                    <option value="disposal">Disposal</option>
-                    <option value="sale">Sale</option>
+                    <option value="all">{t.auditTrail.allEntities}</option>
+                    <option value="product">{t.auditTrail.entities.product}</option>
+                    <option value="category">{t.auditTrail.entities.category}</option>
+                    <option value="subcategory">{t.auditTrail.entities.subcategory}</option>
+                    <option value="uom">{t.auditTrail.entities.uom}</option>
+                    <option value="location">{t.auditTrail.entities.location}</option>
+                    <option value="product_location_stock">{t.auditTrail.entities.product_location_stock}</option>
+                    <option value="procurement">{t.auditTrail.entities.procurement}</option>
+                    <option value="disposal">{t.auditTrail.entities.disposal}</option>
+                    <option value="sale">{t.auditTrail.entities.sale}</option>
                   </select>
                   <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -422,13 +427,13 @@ export default function AuditTrail() {
                     }}
                     className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-8 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   >
-                    <option value="all">All Actions</option>
-                    <option value="create">Create</option>
-                    <option value="update">Update</option>
-                    <option value="delete">Delete</option>
-                    <option value="restore">Restore</option>
-                    <option value="approve">Approve</option>
-                    <option value="reject">Reject</option>
+                    <option value="all">{t.auditTrail.allActions}</option>
+                    <option value="create">{t.auditTrail.actions.create}</option>
+                    <option value="update">{t.auditTrail.actions.update}</option>
+                    <option value="delete">{t.auditTrail.actions.delete}</option>
+                    <option value="restore">{t.auditTrail.actions.restore}</option>
+                    <option value="approve">{t.auditTrail.actions.approve}</option>
+                    <option value="reject">{t.auditTrail.actions.reject}</option>
                   </select>
                   <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
@@ -440,7 +445,7 @@ export default function AuditTrail() {
                       setDateFromFilter(e.target.value)
                       setCurrentPage(1)
                     }}
-                    placeholder="From Date"
+                    placeholder={t.auditTrail.dateFrom}
                     className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
@@ -452,7 +457,7 @@ export default function AuditTrail() {
                       setDateToFilter(e.target.value)
                       setCurrentPage(1)
                     }}
-                    placeholder="To Date"
+                    placeholder={t.auditTrail.dateTo}
                     className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                   />
                 </div>
@@ -468,7 +473,7 @@ export default function AuditTrail() {
                     }}
                     className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
-                    Clear Dates
+                    {t.auditTrail.clearDates}
                   </button>
                 </div>
               )}
@@ -479,15 +484,15 @@ export default function AuditTrail() {
             <table className="min-w-full text-left text-sm">
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Entity</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Action</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Entity Name</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.auditTrail.dateTime}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.auditTrail.entity}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.auditTrail.action}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.auditTrail.entityName}</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                    Changes
+                    {t.auditTrail.changes}
                   </th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
-                    Notes
+                    {t.auditTrail.notes}
                   </th>
                 </tr>
               </thead>
@@ -561,7 +566,7 @@ export default function AuditTrail() {
                           </div>
                         ) : entry.action === 'create' && newValues ? (
                           <div className="text-[10px] text-emerald-600">
-                            Created: {Object.keys(newValues).join(', ')}
+                            {t.auditTrail.created}: {Object.keys(newValues).join(', ')}
                           </div>
                         ) : (
                           '-'
@@ -585,8 +590,8 @@ export default function AuditTrail() {
                         selectedActionFilter !== 'all' ||
                         dateFromFilter ||
                         dateToFilter
-                        ? 'No audit trail entries match your search or filter criteria.'
-                        : 'No audit trail entries found.'}
+                        ? t.auditTrail.noMatch
+                        : t.auditTrail.notFound}
                     </td>
                   </tr>
                 )}
@@ -600,22 +605,22 @@ export default function AuditTrail() {
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-center gap-3">
                   <div className="text-xs text-slate-500">
-                    Showing{' '}
+                    {t.common.showing}{' '}
                     <span className="font-medium text-slate-900">
                       {(currentPage - 1) * itemsPerPage + 1}
                     </span>{' '}
-                    to{' '}
+                    {t.common.to}{' '}
                     <span className="font-medium text-slate-900">
                       {Math.min(currentPage * itemsPerPage, filteredEntries.length)}
                     </span>{' '}
-                    of{' '}
+                    {t.common.of}{' '}
                     <span className="font-medium text-slate-900">
                       {filteredEntries.length}
                     </span>{' '}
-                    results
+                    {t.common.results}
                   </div>
                   <div className="flex items-center gap-2">
-                    <label className="text-xs text-slate-500">Items per page:</label>
+                    <label className="text-xs text-slate-500">{t.common.itemsPerPage}</label>
                     <select
                       value={itemsPerPage}
                       onChange={(e) => {
@@ -646,7 +651,7 @@ export default function AuditTrail() {
                     disabled={currentPage === 1}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previous
+                    {t.common.previous}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -666,8 +671,8 @@ export default function AuditTrail() {
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
                           className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                            ? 'bg-primary-600 text-white'
+                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                             }`}
                         >
                           {pageNum}
@@ -683,7 +688,7 @@ export default function AuditTrail() {
                     disabled={currentPage === totalPages}
                     className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Next
+                    {t.common.next}
                   </button>
                   <button
                     type="button"

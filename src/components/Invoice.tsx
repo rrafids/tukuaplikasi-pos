@@ -1,5 +1,6 @@
 import type { SaleWithItems } from '../db/sales'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 interface InvoiceProps {
   sale: SaleWithItems
@@ -8,6 +9,7 @@ interface InvoiceProps {
 
 export default function Invoice({ sale, onClose }: InvoiceProps) {
   const { t } = useLanguage()
+  const { appName, whatsappNumber } = useSettings()
   const formatCurrency = (value: number) => {
     return `Rp ${value.toLocaleString('id-ID')}`
   }
@@ -112,7 +114,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
         <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[58mm] print:max-w-[58mm]">
           {/* Header with print button */}
           <div className="no-print flex items-center justify-between border-b border-slate-200 p-4">
-            <h2 className="text-lg font-semibold text-slate-900">Invoice</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{t.invoice.title}</h2>
             <div className="flex gap-2">
               <button
                 onClick={handlePrint}
@@ -136,30 +138,30 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             {/* Company Header */}
             <div className="mb-4 text-center print:mb-2">
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
-                Point of Sales
+                {appName}
               </h1>
-              <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">Point of Sales</p>
+              <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">{t.invoice.posName}</p>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 
             {/* Invoice Details */}
             <div className="mb-4 space-y-1 print:mb-2 print:space-y-0.5">
               <div className="flex justify-between text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">Invoice #:</span>
+                <span className="font-semibold print:font-bold">{t.invoice.invoiceNo}</span>
                 <span className="print:font-medium">
                   {sale.invoice_number || `INV-${sale.id.toString().padStart(6, '0')}`}
                 </span>
               </div>
               <div className="flex justify-between text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">Date:</span>
+                <span className="font-semibold print:font-bold">{t.invoice.date}</span>
                 <span className="print:font-medium">{formatDate(sale.created_at)}</span>
               </div>
               <div className="flex justify-between text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">Customer:</span>
-                <span className="print:font-medium">{sale.customer_name || 'Walk-in'}</span>
+                <span className="font-semibold print:font-bold">{t.invoice.customer}</span>
+                <span className="print:font-medium">{sale.customer_name || t.invoice.walkIn}</span>
               </div>
               <div className="flex justify-between text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">Cashier:</span>
+                <span className="font-semibold print:font-bold">{t.invoice.cashier}</span>
                 <span className="print:font-medium">{sale.user_name || '-'}</span>
               </div>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
@@ -174,13 +176,13 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                       #
                     </th>
                     <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      Item
+                      {t.invoice.item}
                     </th>
                     <th className="px-1 py-1 text-center text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      Qty
+                      {t.invoice.qty}
                     </th>
                     <th className="px-1 py-1 text-right text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      Total
+                      {t.invoice.total}
                     </th>
                   </tr>
                 </thead>
@@ -224,7 +226,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                   return (
                     <>
                       <div className="flex justify-between text-sm print:text-[10pt]">
-                        <span className="font-semibold text-slate-900 print:font-bold">Subtotal:</span>
+                        <span className="font-semibold text-slate-900 print:font-bold">{t.invoice.subtotal}</span>
                         <span className="font-medium text-slate-900 print:font-semibold">
                           {formatCurrency(subtotal)}
                         </span>
@@ -232,7 +234,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                       {discountAmount > 0 && (
                         <div className="flex justify-between text-sm print:text-[10pt]">
                           <span className="font-semibold text-slate-900 print:font-bold">
-                            Discount
+                            {t.invoice.discount}
                             {sale.discount_type === 'percentage' && sale.discount_value
                               ? ` (${sale.discount_value}%)`
                               : ''}
@@ -259,15 +261,17 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             {sale.notes && (
               <div className="mb-4 border-t-2 border-slate-900 pt-2 print:mb-2 print:border-t-2 print:pt-1">
                 <p className="text-xs text-slate-900 print:text-[9pt] print:font-medium">
-                  <span className="font-semibold print:font-bold">Note:</span> {sale.notes}
+                  <span className="font-semibold print:font-bold">{t.invoice.notes}</span> {sale.notes}
                 </p>
               </div>
             )}
 
             {/* Footer */}
             <div className="mt-4 border-t-2 border-slate-900 pt-2 text-center text-xs text-slate-700 print:mt-2 print:border-t-2 print:pt-1 print:text-[9pt] print:font-medium">
-              <p className="print:font-semibold">Thank you for shopping with us!</p>
-              <p className="mt-1 print:mt-0.5 print:font-normal">Computer-generated receipt</p>
+              <p className="print:font-semibold">{t.invoice.thankYou}</p>
+              {whatsappNumber && (
+                <p className="mt-1 print:mt-0.5 print:font-normal">WA: {whatsappNumber}</p>
+              )}
             </div>
           </div>
         </div>

@@ -32,13 +32,14 @@ import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import BarcodePrint from './BarcodePrint'
 import SearchableSelect from './SearchableSelect'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 
 type Product = ProductRow
 
 type ProductFormState = {
   name: string
   price: string
+  buyPrice: string
   barcode: string
   uom_id: string
   subcategoryIds: number[]
@@ -71,6 +72,7 @@ export default function Products() {
   const [form, setForm] = useState<ProductFormState>({
     name: '',
     price: '',
+    buyPrice: '',
     barcode: '',
     uom_id: '',
     subcategoryIds: [],
@@ -154,6 +156,7 @@ export default function Products() {
     setForm({
       name: '',
       price: '',
+      buyPrice: '',
       barcode: '',
       uom_id: '',
       subcategoryIds: [],
@@ -185,6 +188,7 @@ export default function Products() {
     setForm({
       name: product.name,
       price: product.price.toString(),
+      buyPrice: product.buy_price?.toString() ?? '',
       barcode: product.barcode || '',
       uom_id: product.uom_id?.toString() ?? '',
       subcategoryIds: [],
@@ -223,17 +227,20 @@ export default function Products() {
     e.preventDefault()
     const run = async () => {
       try {
-        const price = parseFloat(form.price.replace(/\./g, '').replace(/,/g, '.') || '0') // Handle 'id-ID' format
+        const price = parseFloat(form.price.replace(/\./g, '').replace(/,/g, '.') || '0')
+        const buyPrice = form.buyPrice ? parseFloat(form.buyPrice.replace(/\./g, '').replace(/,/g, '.') || '0') : null
 
         if (editingId == null) {
           console.log('[Products] Creating product:', {
             name: form.name.trim(),
             price,
+            buy_price: buyPrice,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
           })
           const created = await createProduct({
             name: form.name.trim(),
             price,
+            buy_price: buyPrice,
             barcode: form.barcode.trim() || null,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
           })
@@ -257,11 +264,13 @@ export default function Products() {
           console.log('[Products] Updating product:', editingId, {
             name: form.name.trim(),
             price,
+            buy_price: buyPrice,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
           })
           const updated = await updateProduct(editingId, {
             name: form.name.trim(),
             price,
+            buy_price: buyPrice,
             barcode: form.barcode.trim() || null,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
           })
@@ -369,14 +378,16 @@ export default function Products() {
       const templateData = [
         {
           'Product Name': 'Example Product 1',
-          'Price': 100000,
+          'Selling Price': 100000,
+          'Buy Price': 80000,
           'Barcode': '1234567890123',
           'UOM ID': '',
           'Subcategory IDs': '',
         },
         {
           'Product Name': 'Example Product 2',
-          'Price': 50000,
+          'Selling Price': 50000,
+          'Buy Price': 40000,
           'Barcode': '1234567890124',
           'UOM ID': '',
           'Subcategory IDs': '',
@@ -419,7 +430,9 @@ export default function Products() {
           const worksheet = workbook.Sheets[sheetName]
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as Array<{
             'Product Name': string
-            'Price': number | string
+            'Price'?: number | string | null
+            'Selling Price'?: number | string | null
+            'Buy Price'?: number | string | null
             'Barcode'?: string | null
             'UOM ID'?: number | string | null
             'Subcategory IDs'?: string | null
@@ -435,6 +448,7 @@ export default function Products() {
           const productsToCreate: Array<{
             name: string
             price: number
+            buy_price: number | null
             barcode: string | null
             uom_id: number | null
             subcategoryIds: number[]
@@ -445,19 +459,32 @@ export default function Products() {
             const rowNum = i + 2 // +2 because Excel is 1-indexed and we have header
 
             // Validate required fields
-            if (!row['Product Name'] || !row['Price']) {
+            if (!row['Product Name'] || (!row['Price'] && !row['Selling Price'])) {
               console.warn(`[Products] Skipping row ${rowNum}: missing required fields`)
               continue
             }
 
             // Parse price
             let price: number
-            if (typeof row['Price'] === 'string') {
+            const rawPrice = row['Price'] || row['Selling Price']
+            if (typeof rawPrice === 'string') {
               price = parseFloat(
-                row['Price'].replace(/\./g, '').replace(/,/g, '.') || '0',
+                rawPrice.replace(/\./g, '').replace(/,/g, '.') || '0',
               )
             } else {
-              price = row['Price'] || 0
+              price = rawPrice || 0
+            }
+
+            // Parse buy price
+            let buy_price: number | null = null
+            if (row['Buy Price'] !== undefined) {
+              if (typeof row['Buy Price'] === 'string') {
+                buy_price = parseFloat(
+                  row['Buy Price'].replace(/\./g, '').replace(/,/g, '.') || '0',
+                )
+              } else {
+                buy_price = row['Buy Price'] as number
+              }
             }
 
             if (isNaN(price) || price <= 0) {
@@ -489,6 +516,7 @@ export default function Products() {
             productsToCreate.push({
               name: String(row['Product Name']).trim(),
               price,
+              buy_price,
               barcode: row['Barcode']?.toString().trim() || null,
               uom_id,
               subcategoryIds,
@@ -519,6 +547,7 @@ export default function Products() {
               const created = await createProduct({
                 name: productData.name,
                 price: productData.price,
+                buy_price: productData.buy_price,
                 barcode: productData.barcode,
                 uom_id: productData.uom_id,
               })
@@ -664,7 +693,8 @@ export default function Products() {
         return {
           'ID': product.id,
           'Name': product.name,
-          'Price': product.price,
+          'Selling Price': product.price,
+          'Buy Price': product.buy_price || 0,
           'Barcode': product.barcode || '-',
           'UOM': uomName,
           'Categories': subcategoryNames,
@@ -940,8 +970,9 @@ export default function Products() {
               <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-3 py-2 md:px-4 md:py-3">ID</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Name</th>
-                  <th className="px-3 py-2 md:px-4 md:py-3">Price</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.products.productName}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.products.buyPrice}</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">{t.products.price}</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">UOM</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
                     Created
@@ -998,6 +1029,9 @@ export default function Products() {
                                 )}
                               </div>
                             )}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
+                          Rp {product.buy_price?.toLocaleString('id-ID') ?? '0'}
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
                           Rp {product.price.toLocaleString('id-ID')}
@@ -1215,7 +1249,7 @@ export default function Products() {
                     disabled={currentPage === 1}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previous
+                    {t.common.previous}
                   </button>
                   <div className="flex items-center gap-1">
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -1252,7 +1286,7 @@ export default function Products() {
                     disabled={currentPage === totalPages}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Next
+                    {t.common.next}
                   </button>
                   <button
                     type="button"
@@ -1296,14 +1330,14 @@ export default function Products() {
             <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-y-auto px-4 py-4 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
-                  Name
+                  {t.products.productName}
                 </label>
                 <input
                   type="text"
                   required
                   value={form.name}
                   onChange={handleChange('name')}
-                  placeholder="Product name"
+                  placeholder={t.products.enterName}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
               </div>
@@ -1316,39 +1350,61 @@ export default function Products() {
                   type="text"
                   value={form.barcode}
                   onChange={handleChange('barcode')}
-                  placeholder="Enter barcode (optional)"
+                  placeholder={t.products.enterBarcode}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                 />
                 <p className="text-xs text-slate-500">
-                  Leave empty to skip or enter existing barcode
+                  {t.products.barcodeHint}
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">
-                  Price
-                </label>
-                <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
-                  <span className="text-xs text-slate-500">Rp</span>
-                  <input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    required
-                    value={form.price}
-                    onChange={handleChange('price')}
-                    className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
-                  />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700">
+                    {t.products.buyPrice}
+                  </label>
+                  <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
+                    <span className="text-xs text-slate-500">Rp</span>
+                    <input
+                      type="text"
+                      required
+                      value={form.buyPrice}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '')
+                        setForm(prev => ({ ...prev, buyPrice: val ? parseInt(val).toLocaleString('id-ID') : '' }))
+                      }}
+                      className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-slate-700">
+                    {t.products.price}
+                  </label>
+                  <div className="flex items-center rounded-md border border-slate-300 px-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
+                    <span className="text-xs text-slate-500">Rp</span>
+                    <input
+                      type="text"
+                      required
+                      value={form.price}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '')
+                        setForm(prev => ({ ...prev, price: val ? parseInt(val).toLocaleString('id-ID') : '' }))
+                      }}
+                      className="w-full border-none bg-transparent px-2 py-1.5 text-sm text-slate-900 outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-700">
-                  Unit of Measurement
+                  {t.products.uom}
                 </label>
                 <SearchableSelect
                   options={[
-                    { value: '', label: 'No UOM' },
+                    { value: '', label: t.products.noUOM },
                     ...uoms
                       .filter((u) => u.deleted_at === null)
                       .map((uom) => ({
@@ -1360,11 +1416,11 @@ export default function Products() {
                   onChange={(val) =>
                     setForm({ ...form, uom_id: val ? String(val) : '' })
                   }
-                  placeholder="No UOM"
-                  searchPlaceholder="Search UOM..."
+                  placeholder={t.products.noUOM}
+                  searchPlaceholder={t.products.searchUOM}
                 />
                 <p className="text-[10px] text-slate-500">
-                  Select a unit of measurement for this product
+                  {t.products.selectUOMHint}
                 </p>
               </div>
 
@@ -1375,8 +1431,7 @@ export default function Products() {
                 <div className="max-h-40 overflow-y-auto rounded-md border border-slate-300 p-2 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500">
                   {activeSubcategories.length === 0 ? (
                     <p className="text-xs text-slate-500">
-                      No subcategories available. Create categories and
-                      subcategories first.
+                      {t.products.noSubcategories}
                     </p>
                   ) : (
                     <div className="space-y-1.5">
@@ -1417,7 +1472,7 @@ export default function Products() {
                   )}
                 </div>
                 <p className="text-[10px] text-slate-500">
-                  Select one or more subcategories for this product
+                  {t.products.selectSubcategoriesHint}
                 </p>
               </div>
 
@@ -1425,7 +1480,7 @@ export default function Products() {
                 <div className="grid gap-3 rounded-md bg-slate-50 p-3 text-[10px] text-slate-500 md:grid-cols-2">
                   <div>
                     <div className="font-semibold text-slate-600">
-                      Created at
+                      {t.common.createdAt}
                     </div>
                     <div>
                       {new Date(
@@ -1435,7 +1490,7 @@ export default function Products() {
                   </div>
                   <div>
                     <div className="font-semibold text-slate-600">
-                      Last updated
+                      {t.common.lastUpdated}
                     </div>
                     <div>
                       {new Date(
@@ -1565,17 +1620,17 @@ export default function Products() {
                     </h4>
                     <ul className="space-y-1 text-xs text-slate-600">
                       <li>
-                        <strong>Product Name:</strong> {t.products.required}
+                        <strong>{t.products.productName}:</strong> {t.products.required}
                       </li>
                       <li>
-                        <strong>Price:</strong> {t.products.required} (
+                        <strong>{t.products.price}:</strong> {t.products.required} (
                         {t.products.numericOnly})
                       </li>
                       <li>
-                        <strong>Barcode:</strong> {t.common.optional}
+                        <strong>{t.products.barcode}:</strong> {t.common.optional}
                       </li>
                       <li>
-                        <strong>UOM ID:</strong> {t.common.optional} (
+                        <strong>{t.products.uom} ID:</strong> {t.common.optional} (
                         {t.products.existingUOMId})
                       </li>
                       <li>

@@ -9,7 +9,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listProducts } from '../db/products'
 import type { ProductRow } from '../db/products'
 import { listLocations, getProductLocationStocks } from '../db/locations'
@@ -26,6 +26,7 @@ import {
 import type { SaleWithItems } from '../db/sales'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 import { useAuth } from '../contexts/AuthContext'
 import Invoice from './Invoice'
 import SearchableSelect from './SearchableSelect'
@@ -56,6 +57,7 @@ type SaleFormState = {
 export default function Sales() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const { user } = useAuth()
   const [sales, setSales] = useState<SaleWithItems[]>([])
   const [products, setProducts] = useState<ProductRow[]>([])
@@ -586,15 +588,50 @@ export default function Sales() {
       // Create AoA (Array of Arrays) for the Excel sheet
       const aoaData: any[][] = []
 
+      // Cell Styles
+      const headerStyle = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "0EA5E9" } }, // Tailwind primary-500 equivalent
+        alignment: { vertical: "center", horizontal: "center" },
+        border: {
+          top: { style: "thin", color: { auto: 1 } },
+          bottom: { style: "thin", color: { auto: 1 } },
+          left: { style: "thin", color: { auto: 1 } },
+          right: { style: "thin", color: { auto: 1 } }
+        }
+      }
+
+      const titleStyle = {
+        font: { bold: true, sz: 14 }
+      }
+
+      const bodyStyle = {
+        border: {
+          top: { style: "thin", color: { rgb: "E2E8F0" } }, // Tailwind slate-200
+          bottom: { style: "thin", color: { rgb: "E2E8F0" } },
+          left: { style: "thin", color: { rgb: "E2E8F0" } },
+          right: { style: "thin", color: { rgb: "E2E8F0" } }
+        }
+      }
+
+      // 0. Header / Store Name
+      aoaData.push([{ v: appName, s: { font: { bold: true, sz: 18 } } }])
+      aoaData.push([{ v: 'Laporan Penjualan', s: { font: { italic: true, sz: 12, color: { rgb: "64748B" } } } }])
+      aoaData.push([])
+
       // 1. Title and Summary Section
-      aoaData.push(['REKAP PENJUALAN PER PRODUK'])
-      aoaData.push(['Product Name', 'Total Quantity Sold', 'Total Revenue'])
+      aoaData.push([{ v: 'REKAP PENJUALAN PER PRODUK', s: titleStyle }])
+      aoaData.push([
+        { v: 'Product Name', s: headerStyle },
+        { v: 'Total Quantity Sold', s: headerStyle },
+        { v: 'Total Revenue', s: headerStyle }
+      ])
 
       salesSummary.forEach((item) => {
         aoaData.push([
-          item.name,
-          item.quantity,
-          `Rp ${item.revenue.toLocaleString('id-ID')}`
+          { v: item.name, s: bodyStyle },
+          { v: item.quantity, s: bodyStyle },
+          { v: `Rp ${item.revenue.toLocaleString('id-ID')}`, s: bodyStyle }
         ])
       })
 
@@ -603,14 +640,14 @@ export default function Sales() {
       aoaData.push([])
 
       // 2. Transaction Details Section
-      aoaData.push(['DETAIL TRANSAKSI PENJUALAN'])
+      aoaData.push([{ v: 'DETAIL TRANSAKSI PENJUALAN', s: titleStyle }])
 
       // Header row for transactions
       const detailsHeader = [
         'Date', 'Location', 'Customer', 'Location Type', 'Product', 'Quantity',
         'Buy Price', 'Sell Price', 'Subtotal', 'Discount', 'Discount Amount',
         'Total Amount', 'Payment Method', 'Notes'
-      ]
+      ].map(text => ({ v: text, s: headerStyle }))
       aoaData.push(detailsHeader)
 
       filteredSales.forEach((sale) => {
@@ -630,44 +667,63 @@ export default function Sales() {
 
         if (sale.items.length === 0) {
           aoaData.push([
-            new Date(sale.created_at).toLocaleDateString('id-ID'),
-            sale.location_name,
-            sale.customer_name || '-',
-            sale.location_type,
-            '-', // Product
-            '-', // Quantity
-            '-', // Buy Price
-            '-', // Sell Price
-            `Rp ${subtotal.toLocaleString('id-ID')}`, // Subtotal
-            discountDisplay,
-            discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-',
-            `Rp ${sale.total_amount.toLocaleString('id-ID')}`,
-            sale.payment_method === 'utang' ? 'Utang' : 'Cash',
-            sale.notes || '-'
+            { v: new Date(sale.created_at).toLocaleDateString('id-ID'), s: bodyStyle },
+            { v: sale.location_name, s: bodyStyle },
+            { v: sale.customer_name || '-', s: bodyStyle },
+            { v: sale.location_type, s: bodyStyle },
+            { v: '-', s: bodyStyle }, // Product
+            { v: '-', s: bodyStyle }, // Quantity
+            { v: '-', s: bodyStyle }, // Buy Price
+            { v: '-', s: bodyStyle }, // Sell Price
+            { v: `Rp ${subtotal.toLocaleString('id-ID')}`, s: bodyStyle }, // Subtotal
+            { v: discountDisplay, s: bodyStyle },
+            { v: discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-', s: bodyStyle },
+            { v: `Rp ${sale.total_amount.toLocaleString('id-ID')}`, s: bodyStyle },
+            { v: sale.payment_method === 'utang' ? 'Utang' : 'Cash', s: bodyStyle },
+            { v: sale.notes || '-', s: bodyStyle }
           ])
         } else {
           sale.items.forEach((item, index) => {
             aoaData.push([
-              index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '',
-              index === 0 ? sale.location_name : '',
-              index === 0 ? (sale.customer_name || '-') : '',
-              index === 0 ? sale.location_type : '',
-              item.product_name,
-              item.quantity,
-              products.find(p => p.id === item.product_id)?.price || 0,
-              item.unit_price,
-              `Rp ${item.subtotal.toLocaleString('id-ID')}`,
-              index === 0 ? discountDisplay : '',
-              index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '',
-              index === 0 ? `Rp ${sale.total_amount.toLocaleString('id-ID')}` : '',
-              index === 0 ? (sale.payment_method === 'utang' ? 'Utang' : 'Cash') : '',
-              index === 0 ? (sale.notes || '-') : ''
+              { v: index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '', s: bodyStyle },
+              { v: index === 0 ? sale.location_name : '', s: bodyStyle },
+              { v: index === 0 ? (sale.customer_name || '-') : '', s: bodyStyle },
+              { v: index === 0 ? sale.location_type : '', s: bodyStyle },
+              { v: item.product_name, s: bodyStyle },
+              { v: item.quantity, s: bodyStyle },
+              { v: products.find(p => p.id === item.product_id)?.price || 0, s: bodyStyle },
+              { v: item.unit_price, s: bodyStyle },
+              { v: `Rp ${item.subtotal.toLocaleString('id-ID')}`, s: bodyStyle },
+              { v: index === 0 ? discountDisplay : '', s: bodyStyle },
+              { v: index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '', s: bodyStyle },
+              { v: index === 0 ? `Rp ${sale.total_amount.toLocaleString('id-ID')}` : '', s: bodyStyle },
+              { v: index === 0 ? (sale.payment_method === 'utang' ? 'Utang' : 'Cash') : '', s: bodyStyle },
+              { v: index === 0 ? (sale.notes || '-') : '', s: bodyStyle }
             ])
           })
         }
       })
 
       const ws = XLSX.utils.aoa_to_sheet(aoaData)
+
+      // Set column widths for better readability
+      ws['!cols'] = [
+        { wch: 15 }, // Date
+        { wch: 15 }, // Location
+        { wch: 20 }, // Customer
+        { wch: 15 }, // Location Type
+        { wch: 25 }, // Product
+        { wch: 10 }, // Quantity
+        { wch: 15 }, // Buy Price
+        { wch: 15 }, // Sell Price
+        { wch: 15 }, // Subtotal
+        { wch: 10 }, // Discount
+        { wch: 15 }, // Discount Amount
+        { wch: 15 }, // Total Amount
+        { wch: 15 }, // Payment Method
+        { wch: 25 }, // Notes
+      ]
+
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Sales')
 
@@ -1127,7 +1183,7 @@ export default function Sales() {
                       disabled={currentPage === 1}
                       className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Previous
+                      {t.common.previous}
                     </button>
                     <div className="flex items-center gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -1164,7 +1220,7 @@ export default function Sales() {
                       disabled={currentPage === totalPages}
                       className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Next
+                      {t.common.next}
                     </button>
                     <button
                       type="button"
@@ -1203,7 +1259,7 @@ export default function Sales() {
               <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Location <span className="text-rose-500">*</span>
+                    {t.sales.location} <span className="text-rose-500">*</span>
                   </label>
                   <SearchableSelect
                     options={locations.map((location) => ({
@@ -1214,15 +1270,15 @@ export default function Sales() {
                     onChange={(val) =>
                       setForm({ ...form, location_id: val ? String(val) : '' })
                     }
-                    placeholder="Select a location"
+                    placeholder={t.sales.selectLocation}
                     required
-                    searchPlaceholder="Search location..."
+                    searchPlaceholder={t.sales.searchLocation}
                   />
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Customer Name (Optional)
+                    {t.sales.customerNameOptional}
                   </label>
                   <input
                     type="text"
@@ -1230,7 +1286,7 @@ export default function Sales() {
                     onChange={(e) =>
                       setForm({ ...form, customer_name: e.target.value })
                     }
-                    placeholder="Enter customer name"
+                    placeholder={t.sales.enterCustomerName}
                     className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   />
                 </div>
@@ -1238,7 +1294,7 @@ export default function Sales() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-medium text-slate-700">
-                      Items <span className="text-rose-500">*</span>
+                      {t.sales.items} <span className="text-rose-500">*</span>
                     </label>
                     <button
                       type="button"
@@ -1246,7 +1302,7 @@ export default function Sales() {
                       className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                     >
                       <PlusIcon className="h-3 w-3" />
-                      Add Item
+                      {t.sales.addItem}
                     </button>
                   </div>
 
@@ -1258,7 +1314,7 @@ export default function Sales() {
                       >
                         <div className="mb-2 flex items-center justify-between">
                           <span className="text-xs font-medium text-slate-700">
-                            Item {index + 1}
+                            {t.sales.itemNumber.replace('{number}', (index + 1).toString())}
                           </span>
                           <button
                             type="button"
@@ -1272,7 +1328,7 @@ export default function Sales() {
                         <div className="grid gap-2 md:grid-cols-2">
                           <div className="space-y-1">
                             <label className="text-[10px] font-medium text-slate-600">
-                              Product <span className="text-rose-500">*</span>
+                              {t.nav.products} <span className="text-rose-500">*</span>
                             </label>
                             <button
                               type="button"
@@ -1283,14 +1339,14 @@ export default function Sales() {
                               <span className="truncate">
                                 {item.product_id > 0
                                   ? item.product_name
-                                  : (form.location_id ? "Select product..." : "Select location first")
+                                  : (form.location_id ? t.sales.selectProduct : t.sales.selectLocationFirst)
                                 }
                               </span>
                               <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-slate-400" />
                             </button>
                             {item.product_id > 0 && (
                               <p className="text-[10px] text-slate-500">
-                                Stock: {item.available_stock}
+                                {t.sales.availableStock}: {item.available_stock}
                                 {item.product_uom_id && (
                                   <span className="ml-1">
                                     ({uoms.find((u) => u.id === item.product_uom_id)?.abbreviation || ''})
@@ -1302,11 +1358,11 @@ export default function Sales() {
 
                           <div className="space-y-1">
                             <label className="text-[10px] font-medium text-slate-600">
-                              UOM
+                              {t.products.uom}
                             </label>
                             <SearchableSelect
                               options={(() => {
-                                const baseOptions = [{ value: '', label: 'Use product UOM' }]
+                                const baseOptions = [{ value: '', label: t.sales.useProductUOM }]
 
                                 if (!item.product_uom_id) {
                                   return baseOptions
@@ -1336,8 +1392,8 @@ export default function Sales() {
                                   val ? Number(val) : null,
                                 )
                               }
-                              placeholder="Use product UOM"
-                              searchPlaceholder="Search UOM..."
+                              placeholder={t.sales.useProductUOM}
+                              searchPlaceholder={t.sales.searchUOM}
                               className="text-xs"
                               disabled={!item.product_id || !item.product_uom_id}
                             />
@@ -1351,7 +1407,7 @@ export default function Sales() {
 
                           <div className="space-y-1">
                             <label className="text-[10px] font-medium text-slate-600">
-                              Quantity <span className="text-rose-500">*</span>
+                              {t.common.quantity} <span className="text-rose-500">*</span>
                             </label>
                             <input
                               type="number"
@@ -1369,7 +1425,7 @@ export default function Sales() {
 
                           <div className="space-y-1">
                             <label className="text-[10px] font-medium text-slate-600">
-                              Unit Price <span className="text-rose-500">*</span>
+                              {t.sales.unitPrice} <span className="text-rose-500">*</span>
                             </label>
                             <input
                               type="text"
@@ -1385,7 +1441,7 @@ export default function Sales() {
 
                           <div className="space-y-1">
                             <label className="text-[10px] font-medium text-slate-600">
-                              Subtotal
+                              {t.sales.subtotal}
                             </label>
                             <div className="rounded-md border border-slate-300 bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-900">
                               Rp {item.subtotal.toLocaleString('id-ID')}
@@ -1397,7 +1453,7 @@ export default function Sales() {
 
                     {form.items.length === 0 && (
                       <p className="text-center text-xs text-slate-500">
-                        No items added. Click "Add Item" to add products.
+                        {t.sales.noItems}
                       </p>
                     )}
                   </div>
@@ -1468,15 +1524,15 @@ export default function Sales() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Payment Method
+                    {t.sales.paymentMethod}
                   </label>
                   <select
                     value={form.payment_method}
                     onChange={(e) => setForm({ ...form, payment_method: e.target.value as 'cash' | 'utang' })}
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                   >
-                    <option value="cash">Cash / Tunai</option>
-                    <option value="utang">Utang / Credit</option>
+                    <option value="cash">{t.sales.cash}</option>
+                    <option value="utang">{t.sales.utang}</option>
                   </select>
                 </div>
 
@@ -1517,13 +1573,13 @@ export default function Sales() {
                     onClick={closeForm}
                     className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                   >
-                    Cancel
+                    {t.common.cancel}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
                   >
-                    {editingId == null ? 'Create Sale' : 'Update Sale'}
+                    {editingId == null ? t.sales.createSale : t.sales.updateSale}
                   </button>
                 </div>
               </div>

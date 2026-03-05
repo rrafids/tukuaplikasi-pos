@@ -8,7 +8,7 @@ import {
   PlusIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style'
 import { listLocations } from '../db/locations'
 import type { LocationRow } from '../db/locations'
 import {
@@ -23,6 +23,7 @@ import {
 import type { StockOpnameWithItems, StockOpnameStatus } from '../db/stockOpname'
 import { useToastContext } from '../contexts/ToastContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useSettings } from '../contexts/SettingsContext'
 
 type StockOpnameFormState = {
   location_id: string
@@ -33,6 +34,7 @@ type StockOpnameFormState = {
 export default function StockOpname() {
   const toast = useToastContext()
   const { t } = useLanguage()
+  const { appName } = useSettings()
   const [opnames, setOpnames] = useState<StockOpnameWithItems[]>([])
   const [locations, setLocations] = useState<LocationRow[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -74,7 +76,7 @@ export default function StockOpname() {
         setLocations(locationsList.filter((l) => l.deleted_at === null))
       } catch (error) {
         console.error('[StockOpname] Error loading data:', error)
-        toast.error('Failed to load stock opname data')
+        toast.error(t.stockOpname.failedToLoad)
       }
     }
     loadData()
@@ -174,7 +176,7 @@ export default function StockOpname() {
   const handleDownloadTemplate = async () => {
     try {
       if (!form.location_id) {
-        toast.error('Please select a location first')
+        toast.error(t.stockOpname.selectLocationFirst)
         return
       }
 
@@ -204,11 +206,11 @@ export default function StockOpname() {
       // Write file
       XLSX.writeFile(wb, filename)
 
-      toast.success(`Template downloaded: ${filename}`)
+      toast.success(t.stockOpname.templateDownloaded.replace('{filename}', filename))
     } catch (error) {
       console.error('[StockOpname] Error downloading template:', error)
       const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Failed to download template: ${errorMessage}`)
+      toast.error(t.stockOpname.templateDownloadFailed.replace('{errorMessage}', errorMessage))
     }
   }
 
@@ -218,7 +220,7 @@ export default function StockOpname() {
       if (!file) return
 
       if (!form.location_id) {
-        toast.error('Please select a location first')
+        toast.error(t.stockOpname.selectLocationFirst)
         event.target.value = ''
         return
       }
@@ -266,15 +268,15 @@ export default function StockOpname() {
             .filter((item): item is NonNullable<typeof item> => item !== null)
 
           if (items.length === 0) {
-            toast.error('No valid data found in Excel file')
+            toast.error(t.stockOpname.noValidData)
             return
           }
 
           setOpnameItems(items)
-          toast.success(`Imported ${items.length} items from Excel`)
+          toast.success(t.stockOpname.importSuccess.replace('{count}', items.length.toString()))
         } catch (error) {
           console.error('[StockOpname] Error parsing Excel:', error)
-          toast.error('Failed to parse Excel file. Please check the format.')
+          toast.error(t.stockOpname.parseError)
         }
       }
 
@@ -282,7 +284,7 @@ export default function StockOpname() {
       event.target.value = '' // Reset input
     } catch (error) {
       console.error('[StockOpname] Error importing Excel:', error)
-      toast.error('Failed to import Excel file')
+      toast.error(t.stockOpname.importFailed)
     }
   }
 
@@ -290,12 +292,12 @@ export default function StockOpname() {
     e.preventDefault()
     try {
       if (!form.location_id) {
-        toast.error('Please select a location')
+        toast.error(t.stockOpname.selectLocation)
         return
       }
 
       if (opnameItems.length === 0) {
-        toast.error('Please add items to the stock opname')
+        toast.error(t.stockOpname.addItemsFirst)
         return
       }
 
@@ -304,7 +306,7 @@ export default function StockOpname() {
         (item) => !item.product_id || isNaN(item.actual_stock) || isNaN(item.system_stock)
       )
       if (invalidItems.length > 0) {
-        toast.error('Some items have invalid data. Please check all items.')
+        toast.error(t.stockOpname.invalidItemsData)
         return
       }
 
@@ -345,7 +347,7 @@ export default function StockOpname() {
     } catch (error) {
       console.error('[StockOpname] Error saving stock opname:', error)
       const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Failed to save stock opname: ${errorMessage}`)
+      toast.error(t.stockOpname.saveFailed.replace('{errorMessage}', errorMessage))
     }
   }
 
@@ -358,7 +360,7 @@ export default function StockOpname() {
     } catch (error) {
       console.error('[StockOpname] Error completing stock opname:', error)
       const errorMessage = error instanceof Error ? error.message : String(error)
-      toast.error(`Failed to complete stock opname: ${errorMessage}`)
+      toast.error(t.stockOpname.completeFailed.replace('{errorMessage}', errorMessage))
     }
   }
 
@@ -371,7 +373,7 @@ export default function StockOpname() {
       toast.success(t.stockOpname.deleted)
     } catch (error) {
       console.error('[StockOpname] Error deleting stock opname:', error)
-      toast.error('Failed to delete stock opname')
+      toast.error(t.stockOpname.deleteFailed)
     }
   }
 
@@ -384,7 +386,7 @@ export default function StockOpname() {
       toast.success(t.stockOpname.restored)
     } catch (error) {
       console.error('[StockOpname] Error restoring stock opname:', error)
-      toast.error('Failed to restore stock opname')
+      toast.error(t.stockOpname.restoreFailed)
     }
   }
 
@@ -392,17 +394,17 @@ export default function StockOpname() {
     const badges = {
       draft: (
         <span className="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
-          Draft
+          {t.stockOpname.draft}
         </span>
       ),
       completed: (
         <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-          Completed
+          {t.common.completed}
         </span>
       ),
       cancelled: (
         <span className="inline-flex items-center rounded-full bg-rose-100 px-2.5 py-0.5 text-xs font-medium text-rose-800">
-          Cancelled
+          {t.stockOpname.cancelled}
         </span>
       ),
     }
@@ -411,64 +413,68 @@ export default function StockOpname() {
 
   const handleExportExcel = () => {
     try {
-      const exportData: Array<Record<string, unknown>> = []
+      const HEADER_STYLE = {
+        font: { bold: true, color: { rgb: 'FFFFFF' } },
+        fill: { fgColor: { rgb: '0EA5E9' } },
+        alignment: { vertical: 'center', horizontal: 'center' },
+        border: { top: { style: 'thin', color: { auto: 1 } }, bottom: { style: 'thin', color: { auto: 1 } }, left: { style: 'thin', color: { auto: 1 } }, right: { style: 'thin', color: { auto: 1 } } },
+      }
+      const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
+
+      const headers = ['Opname ID', 'Date', 'Location', 'Status', 'Product', 'System Stock', 'Actual Stock', 'Difference', 'Notes']
+
+      const aoaData: any[][] = [
+        [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
+        [{ v: 'Laporan Stock Opname', s: { font: { italic: true, sz: 12, color: { rgb: '64748B' } } } }],
+        [],
+        [{ v: 'DETAIL STOCK OPNAME', s: { font: { bold: true, sz: 14 } } }],
+        headers.map(h => ({ v: h, s: HEADER_STYLE })),
+      ]
+
+      const dateOpts: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }
 
       filteredOpnames.forEach((opname) => {
         if (opname.items.length === 0) {
-          exportData.push({
-            'Opname ID': opname.id,
-            'Date': new Date(opname.opname_date).toLocaleString('id-ID', {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            'Location': opname.location_name,
-            'Status': opname.status.charAt(0).toUpperCase() + opname.status.slice(1),
-            'Product': '-',
-            'System Stock': '-',
-            'Actual Stock': '-',
-            'Difference': '-',
-            'Notes': opname.notes || '-',
-          })
+          aoaData.push([
+            { v: opname.id, s: BODY_STYLE },
+            { v: new Date(opname.opname_date).toLocaleString('id-ID', dateOpts), s: BODY_STYLE },
+            { v: opname.location_name, s: BODY_STYLE },
+            { v: opname.status.charAt(0).toUpperCase() + opname.status.slice(1), s: BODY_STYLE },
+            { v: '-', s: BODY_STYLE },
+            { v: '-', s: BODY_STYLE },
+            { v: '-', s: BODY_STYLE },
+            { v: '-', s: BODY_STYLE },
+            { v: opname.notes || '-', s: BODY_STYLE },
+          ])
         } else {
           opname.items.forEach((item, index) => {
-            exportData.push({
-              'Opname ID': index === 0 ? opname.id : '',
-              'Date': index === 0 ? new Date(opname.opname_date).toLocaleString('id-ID', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              }) : '',
-              'Location': index === 0 ? opname.location_name : '',
-              'Status': index === 0 ? opname.status.charAt(0).toUpperCase() + opname.status.slice(1) : '',
-              'Product': item.product_name,
-              'System Stock': item.system_stock,
-              'Actual Stock': item.actual_stock,
-              'Difference': item.difference > 0 ? `+${item.difference}` : item.difference.toString(),
-              'Notes': index === 0 ? (opname.notes || '-') : (item.notes || '-'),
-            })
+            aoaData.push([
+              { v: index === 0 ? opname.id : '', s: BODY_STYLE },
+              { v: index === 0 ? new Date(opname.opname_date).toLocaleString('id-ID', dateOpts) : '', s: BODY_STYLE },
+              { v: index === 0 ? opname.location_name : '', s: BODY_STYLE },
+              { v: index === 0 ? opname.status.charAt(0).toUpperCase() + opname.status.slice(1) : '', s: BODY_STYLE },
+              { v: item.product_name, s: BODY_STYLE },
+              { v: item.system_stock, s: BODY_STYLE },
+              { v: item.actual_stock, s: BODY_STYLE },
+              { v: item.difference > 0 ? `+${item.difference}` : item.difference.toString(), s: BODY_STYLE },
+              { v: index === 0 ? (opname.notes || '-') : (item.notes || '-'), s: BODY_STYLE },
+            ])
           })
         }
       })
 
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      const ws = XLSX.utils.aoa_to_sheet(aoaData)
+      ws['!cols'] = [{ wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 25 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname')
 
-      const now = new Date()
-      const dateStr = now.toISOString().split('T')[0]
+      const dateStr = new Date().toISOString().split('T')[0]
       const filename = `stock_opname_${dateStr}.xlsx`
-
       XLSX.writeFile(wb, filename)
-
-      toast.success(`Exported ${filteredOpnames.length} stock opnames to ${filename}`)
+      toast.success(t.stockOpname.exportSuccess.replace('{count}', filteredOpnames.length.toString()).replace('{filename}', filename))
     } catch (error) {
       console.error('[StockOpname] Error exporting to Excel:', error)
-      toast.error('Failed to export stock opname to Excel.')
+      toast.error(t.stockOpname.exportFailed)
     }
   }
 
@@ -490,7 +496,7 @@ export default function StockOpname() {
             className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:px-4 md:py-2 md:text-sm"
           >
             <ArrowDownTrayIcon className="h-4 w-4" />
-            <span>Export</span>
+            <span>{t.stockOpname.export}</span>
           </button>
           <button
             onClick={openCreate}
@@ -510,7 +516,7 @@ export default function StockOpname() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Total Opnames
+                  {t.stockOpname.totalOpnames}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-slate-900">
                   {activeCount}
@@ -522,7 +528,7 @@ export default function StockOpname() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Draft
+                  {t.stockOpname.draft}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-yellow-600">
                   {draftCount}
@@ -534,7 +540,7 @@ export default function StockOpname() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  Completed
+                  {t.common.completed}
                 </p>
                 <p className="mt-2 text-2xl font-semibold text-emerald-600">
                   {completedCount}
@@ -553,7 +559,7 @@ export default function StockOpname() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by location, date, ID..."
+                placeholder={t.stockOpname.searchPlaceholder}
                 className="w-full rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-3 text-sm text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
             </div>
@@ -567,7 +573,7 @@ export default function StockOpname() {
                 }
                 className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
-                <option value="">All Locations</option>
+                <option value="">{t.stockOpname.allLocations}</option>
                 {locations.map((loc) => (
                   <option key={loc.id} value={loc.id}>
                     {loc.name} ({loc.type})
@@ -584,10 +590,10 @@ export default function StockOpname() {
                 }
                 className="appearance-none rounded-md border border-slate-300 bg-white px-3 py-1.5 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
               >
-                <option value="all">All Status</option>
-                <option value="draft">Draft</option>
-                <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="all">{t.stockOpname.allStatus}</option>
+                <option value="draft">{t.stockOpname.draft}</option>
+                <option value="completed">{t.common.completed}</option>
+                <option value="cancelled">{t.stockOpname.cancelled}</option>
               </select>
               <ChevronDownIcon className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             </div>
@@ -600,7 +606,7 @@ export default function StockOpname() {
                 onChange={(e) => setShowDeleted(e.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
               />
-              <span>Show deleted</span>
+              <span>{t.common.showDeleted}</span>
             </label>
           </div>
         </div>
@@ -610,12 +616,12 @@ export default function StockOpname() {
           <table className="min-w-full text-left text-sm">
             <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
-                <th className="px-3 py-2 md:px-4 md:py-3">ID</th>
-                <th className="px-3 py-2 md:px-4 md:py-3">Date & Time</th>
-                <th className="px-3 py-2 md:px-4 md:py-3">Location</th>
-                <th className="px-3 py-2 md:px-4 md:py-3">Items</th>
-                <th className="px-3 py-2 md:px-4 md:py-3">Status</th>
-                <th className="px-3 py-2 text-right md:px-4 md:py-3">Actions</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">{t.stockOpname.id}</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">{t.stockOpname.dateTime}</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">{t.stockOpname.location}</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">{t.stockOpname.items}</th>
+                <th className="px-3 py-2 md:px-4 md:py-3">{t.stockOpname.status}</th>
+                <th className="px-3 py-2 text-right md:px-4 md:py-3">{t.common.actions}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -666,7 +672,7 @@ export default function StockOpname() {
                         </div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:text-sm">
-                        {opname.items.length} items
+                        {opname.items.length} {t.stockOpname.items.toLowerCase()}
                       </td>
                       <td className="whitespace-nowrap px-3 py-2 md:px-4 md:py-3">
                         {getStatusBadge(opname.status)}
@@ -681,21 +687,21 @@ export default function StockOpname() {
                                 className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
                                 title="Complete and adjust stock"
                               >
-                                Complete
+                                {t.stockOpname.complete}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => openEdit(opname)}
                                 className="rounded border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                               >
-                                Edit
+                                {t.common.edit}
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleSoftDelete(opname)}
                                 className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
                               >
-                                Delete
+                                {t.common.delete}
                               </button>
                             </>
                           )}
@@ -705,7 +711,7 @@ export default function StockOpname() {
                               onClick={() => handleRestore(opname)}
                               className="rounded border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-600 hover:bg-emerald-50"
                             >
-                              Restore
+                              {t.common.restore}
                             </button>
                           )}
                         </div>
@@ -724,22 +730,22 @@ export default function StockOpname() {
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex items-center gap-3">
                 <div className="text-xs text-slate-500">
-                  Showing{' '}
+                  {t.common.showing}{' '}
                   <span className="font-medium text-slate-900">
                     {(currentPage - 1) * itemsPerPage + 1}
                   </span>{' '}
-                  to{' '}
+                  {t.common.to}{' '}
                   <span className="font-medium text-slate-900">
                     {Math.min(currentPage * itemsPerPage, filteredOpnames.length)}
                   </span>{' '}
-                  of{' '}
+                  {t.common.of}{' '}
                   <span className="font-medium text-slate-900">
                     {filteredOpnames.length}
                   </span>{' '}
-                  results
+                  {t.common.results}
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-slate-500">Items per page:</label>
+                  <label className="text-xs text-slate-500">{t.common.itemsPerPage}:</label>
                   <select
                     value={itemsPerPage}
                     onChange={(e) => {
@@ -768,7 +774,7 @@ export default function StockOpname() {
                   disabled={currentPage === 1}
                   className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Previous
+                  {t.common.previous}
                 </button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -787,8 +793,8 @@ export default function StockOpname() {
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
                         className={`rounded px-3 py-1 text-xs font-medium ${currentPage === pageNum
-                            ? 'bg-primary-600 text-white'
-                            : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'bg-primary-600 text-white'
+                          : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                           }`}
                       >
                         {pageNum}
@@ -801,7 +807,7 @@ export default function StockOpname() {
                   disabled={currentPage === totalPages}
                   className="rounded border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Next
+                  {t.common.next}
                 </button>
                 <button
                   onClick={() => setCurrentPage(totalPages)}
@@ -836,7 +842,7 @@ export default function StockOpname() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Location <span className="text-rose-500">*</span>
+                    {t.stockOpname.location} <span className="text-rose-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -845,7 +851,7 @@ export default function StockOpname() {
                       onChange={(e) => setForm({ ...form, location_id: e.target.value })}
                       className="w-full appearance-none rounded-md border border-slate-300 bg-white px-3 py-2 pr-9 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 hover:bg-slate-50 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary-500/20"
                     >
-                      <option value="">Select location</option>
+                      <option value="">{t.stockOpname.selectLocationPlaceholder}</option>
                       {locations.map((loc) => (
                         <option key={loc.id} value={loc.id}>
                           {loc.name} ({loc.type})
@@ -858,7 +864,7 @@ export default function StockOpname() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-slate-700">
-                    Opname Date <span className="text-rose-500">*</span>
+                    {t.stockOpname.opnameDate} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="date"
@@ -871,20 +877,20 @@ export default function StockOpname() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700">Notes</label>
+                <label className="text-xs font-medium text-slate-700">{t.stockOpname.notes}</label>
                 <textarea
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   rows={2}
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                  placeholder="Optional notes..."
+                  placeholder={t.stockOpname.notesPlaceholder}
                 />
               </div>
 
               {/* Excel Import/Export Section */}
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
                 <div className="mb-3 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-slate-900">Items</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">{t.stockOpname.items}</h3>
                   <div className="flex gap-2">
                     {form.location_id && (
                       <>
@@ -894,11 +900,11 @@ export default function StockOpname() {
                           className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50"
                         >
                           <DocumentArrowDownIcon className="h-4 w-4" />
-                          Download Template
+                          {t.stockOpname.downloadTemplate}
                         </button>
                         <label className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 cursor-pointer">
                           <ArrowUpTrayIcon className="h-4 w-4" />
-                          <span>Import Excel</span>
+                          <span>{t.stockOpname.importExcel}</span>
                           <input
                             type="file"
                             accept=".xlsx,.xls"
@@ -914,18 +920,18 @@ export default function StockOpname() {
                 {opnameItems.length === 0 ? (
                   <p className="text-center text-sm text-slate-500 py-4">
                     {form.location_id
-                      ? 'Download template, fill in actual stock, then import the Excel file'
-                      : 'Select a location first to download template'}
+                      ? t.stockOpname.importHint
+                      : t.stockOpname.selectLocationHint}
                   </p>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-xs">
                       <thead className="bg-slate-100">
                         <tr>
-                          <th className="px-2 py-1.5 text-left">Product</th>
-                          <th className="px-2 py-1.5 text-right">System Stock</th>
-                          <th className="px-2 py-1.5 text-right">Actual Stock</th>
-                          <th className="px-2 py-1.5 text-right">Difference</th>
+                          <th className="px-2 py-1.5 text-left">{t.stockOpname.product}</th>
+                          <th className="px-2 py-1.5 text-right">{t.stockOpname.systemStock}</th>
+                          <th className="px-2 py-1.5 text-right">{t.stockOpname.actualStock}</th>
+                          <th className="px-2 py-1.5 text-right">{t.stockOpname.difference}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200">
@@ -958,10 +964,10 @@ export default function StockOpname() {
                               </td>
                               <td
                                 className={`px-2 py-1.5 text-right font-medium ${difference > 0
-                                    ? 'text-emerald-600'
-                                    : difference < 0
-                                      ? 'text-rose-600'
-                                      : 'text-slate-600'
+                                  ? 'text-emerald-600'
+                                  : difference < 0
+                                    ? 'text-rose-600'
+                                    : 'text-slate-600'
                                   }`}
                               >
                                 {difference > 0 ? '+' : ''}
