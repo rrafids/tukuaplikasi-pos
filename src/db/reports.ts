@@ -45,7 +45,7 @@ async function getDb() {
   return dbPromise
 }
 
-export async function getLabaRugiReport(startDate: string, endDate: string): Promise<LabaRugiData> {
+export async function getLabaRugiReport(startDate: string, endDate: string, productId?: number | null): Promise<LabaRugiData> {
   try {
     const db = await getDb()
 
@@ -53,30 +53,52 @@ export async function getLabaRugiReport(startDate: string, endDate: string): Pro
     const end = `${endDate}T23:59:59.999Z`
 
     // 1. Revenue
-    const salesResult = await db.select<Array<{ total: number | null }>>(
-      `SELECT SUM(total_amount) as total FROM sales WHERE deleted_at IS NULL AND created_at >= $1 AND created_at <= $2`,
-      [start, end]
-    )
+    let revenueQuery = `SELECT SUM(s.total_amount) as total FROM sales s WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2`
+    let revenueParams: any[] = [start, end]
+
+    if (productId) {
+      // If product filter is active, we calculate revenue based on sales_items for that product
+      // Note: Discounts are applied to the whole sale, so for per-product report, 
+      // we use the item subtotal which is more accurate for product performance.
+      revenueQuery = `
+        SELECT SUM(si.subtotal) as total 
+        FROM sales_items si
+        JOIN sales s ON si.sale_id = s.id
+        WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2 AND si.product_id = $3`
+      revenueParams.push(productId)
+    }
+
+    const salesResult = await db.select<Array<{ total: number | null }>>(revenueQuery, revenueParams)
     const revenue = salesResult[0]?.total || 0
 
     // 2. COGS (Harga Pokok Penjualan)
-    const cogsResult = await db.select<Array<{ total: number | null }>>(
-      `SELECT SUM(si.quantity * COALESCE(p.buy_price, p.price, 0)) as total 
+    let cogsQuery = `SELECT SUM(si.quantity * COALESCE(p.buy_price, p.price, 0)) as total 
        FROM sales_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
-       WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2`,
-      [start, end]
-    )
+       WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2`
+    let cogsParams: any[] = [start, end]
+
+    if (productId) {
+      cogsQuery += ` AND si.product_id = $3`
+      cogsParams.push(productId)
+    }
+
+    const cogsResult = await db.select<Array<{ total: number | null }>>(cogsQuery, cogsParams)
     const cogs = cogsResult[0]?.total || 0
 
     // 3. Procurements (Pembelian Stok)
-    const procurementsResult = await db.select<Array<{ total: number | null }>>(
-      `SELECT SUM(quantity * COALESCE(unit_price, 0)) as total 
+    let procurementsQuery = `SELECT SUM(quantity * COALESCE(unit_price, 0)) as total 
        FROM procurements 
-       WHERE deleted_at IS NULL AND status = 'approved' AND created_at >= $1 AND created_at <= $2`,
-      [start, end]
-    )
+       WHERE deleted_at IS NULL AND status = 'approved' AND created_at >= $1 AND created_at <= $2`
+    let procurementsParams: any[] = [start, end]
+
+    if (productId) {
+      procurementsQuery += ` AND product_id = $3`
+      procurementsParams.push(productId)
+    }
+
+    const procurementsResult = await db.select<Array<{ total: number | null }>>(procurementsQuery, procurementsParams)
     const procurements_total = procurementsResult[0]?.total || 0
 
     return {
@@ -91,7 +113,7 @@ export async function getLabaRugiReport(startDate: string, endDate: string): Pro
   }
 }
 
-export async function getLabaRugiDaily(startDate: string, endDate: string): Promise<DailyLabaRugi[]> {
+export async function getLabaRugiDaily(startDate: string, endDate: string, productId?: number | null): Promise<DailyLabaRugi[]> {
   try {
     const db = await getDb()
 
@@ -99,29 +121,46 @@ export async function getLabaRugiDaily(startDate: string, endDate: string): Prom
     const end = `${endDate}T23:59:59.999Z`
 
     // Get daily revenue
-    const revenueRows = await db.select<Array<{ date: string, revenue: number | null }>>(
-      `SELECT 
+    let revenueQuery = `SELECT 
         substr(s.created_at, 1, 10) as date,
         SUM(s.total_amount) as revenue
        FROM sales s
        WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2
        GROUP BY date
-       ORDER BY date ASC`,
-      [start, end]
-    )
+       ORDER BY date ASC`
+    let revenueParams: any[] = [start, end]
+
+    if (productId) {
+      revenueQuery = `SELECT 
+        substr(s.created_at, 1, 10) as date,
+        SUM(si.subtotal) as revenue
+       FROM sales_items si
+       JOIN sales s ON si.sale_id = s.id
+       WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2 AND si.product_id = $3
+       GROUP BY date
+       ORDER BY date ASC`
+      revenueParams.push(productId)
+    }
+
+    const revenueRows = await db.select<Array<{ date: string, revenue: number | null }>>(revenueQuery, revenueParams)
 
     // Get daily COGS
-    const cogsRows = await db.select<Array<{ date: string, cogs: number | null }>>(
-      `SELECT 
+    let cogsQuery = `SELECT 
         substr(s.created_at, 1, 10) as date,
         SUM(si.quantity * COALESCE(p.buy_price, p.price, 0)) as cogs
        FROM sales_items si
        JOIN sales s ON si.sale_id = s.id
        JOIN products p ON si.product_id = p.id
        WHERE s.deleted_at IS NULL AND s.created_at >= $1 AND s.created_at <= $2
-       GROUP BY date`,
-      [start, end]
-    )
+       GROUP BY date`
+    let cogsParams: any[] = [start, end]
+
+    if (productId) {
+      cogsQuery += ` AND si.product_id = $3`
+      cogsParams.push(productId)
+    }
+
+    const cogsRows = await db.select<Array<{ date: string, cogs: number | null }>>(cogsQuery, cogsParams)
 
     const cogsMap = new Map<string, number>()
     for (const row of cogsRows) {

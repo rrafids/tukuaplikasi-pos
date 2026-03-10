@@ -705,6 +705,8 @@ export const en = {
     cogs: 'Cost of Goods Sold (HPP)',
     grossProfit: 'Gross Profit',
     procurements: 'Stock Purchases (Outflow)',
+    product: 'Product',
+    selectProduct: 'Select Product',
     dateFrom: 'From Date',
     dateTo: 'To Date',
     filter: 'Apply',

@@ -64,7 +64,7 @@ export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseA
           <LanguageToggle />
         </div>
         <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-          <img src="/tlog.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
+          <img src="/bgg.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
           <div className="flex items-center justify-center">
             <CheckCircleIcon className="h-16 w-16 text-green-500" />
           </div>
@@ -138,7 +138,7 @@ export default function LicenseActivation({ fromLogin, onBackToLogin }: LicenseA
         <LanguageToggle />
       </div>
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-        <img src="/tlog.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
+        <img src="/bgg.png" alt="Logo" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
         <div className="flex items-center justify-center">
           <KeyIcon className="h-16 w-16 text-slate-400" />
         </div>

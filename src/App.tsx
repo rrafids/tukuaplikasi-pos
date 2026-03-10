@@ -116,7 +116,7 @@ function AppContent() {
           <div className="shrink-0 border-b border-slate-200 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/tlog.png" alt="" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
+                <img src="/bgg.png" alt="" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
                 <div>
                   <div className="text-sm font-semibold tracking-tight">
                     {appName}

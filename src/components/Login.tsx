@@ -59,7 +59,7 @@ export default function Login({ onShowLicense }: LoginProps) {
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white p-8 shadow-xl">
           <div className="mb-8 text-center">
-            <img src="/tlog.png" alt="Point of Sales" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
+            <img src="/bgg.png" alt="Point of Sales" className="mx-auto mb-4 h-16 w-16 rounded-2xl object-contain" />
             <h1 className="text-2xl font-bold text-slate-900">{t.app.title}</h1>
             <p className="mt-2 text-sm text-slate-600">{t.login.title}</p>
           </div>

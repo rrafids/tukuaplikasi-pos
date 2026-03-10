@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { getLabaRugiReport, getLabaRugiDaily, type LabaRugiData, type DailyLabaRugi } from '../db/reports'
+import { listProducts, type ProductRow } from '../db/products'
+import { listUOMs, type UOMRow } from '../db/uoms'
+import { getAllProductLocationStocks } from '../db/locations'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
 import { useToastContext } from '../contexts/ToastContext'
@@ -9,8 +12,11 @@ import {
   BanknotesIcon,
   ArrowTrendingDownIcon,
   ArrowDownTrayIcon,
+  Squares2X2Icon,
+  TagIcon,
 } from '@heroicons/react/24/outline'
 import * as XLSX from 'xlsx-js-style'
+import ProductSelectionModal from './ProductSelectionModal'
 
 export default function LabaRugi() {
   const { t } = useLanguage()
@@ -32,13 +38,43 @@ export default function LabaRugi() {
   // State
   const [data, setData] = useState<LabaRugiData | null>(null)
   const [dailyData, setDailyData] = useState<DailyLabaRugi[]>([])
+  const [products, setProducts] = useState<ProductRow[]>([])
+  const [uoms, setUOMs] = useState<UOMRow[]>([])
+  const [productStocks, setProductStocks] = useState<Record<number, number>>({})
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
+  const [showProductModal, setShowProductModal] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const selectedProduct = useMemo(() => {
+    return products.find(p => p.id === selectedProductId)
+  }, [products, selectedProductId])
+
+  const fetchInitialData = async () => {
+    try {
+      const [prods, uomsList, stocks] = await Promise.all([
+        listProducts(),
+        listUOMs(),
+        getAllProductLocationStocks()
+      ])
+      setProducts(prods.filter(p => !p.deleted_at))
+      setUOMs(uomsList)
+
+      // Aggregate stocks across all locations
+      const stockMap: Record<number, number> = {}
+      stocks.forEach(s => {
+        stockMap[s.product_id] = (stockMap[s.product_id] || 0) + s.stock
+      })
+      setProductStocks(stockMap)
+    } catch (error) {
+      console.error('[LabaRugi] Error fetching initial data:', error)
+    }
+  }
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const report = await getLabaRugiReport(startDate, endDate)
-      const daily = await getLabaRugiDaily(startDate, endDate)
+      const report = await getLabaRugiReport(startDate, endDate, selectedProductId)
+      const daily = await getLabaRugiDaily(startDate, endDate, selectedProductId)
       setData(report)
       setDailyData(daily)
     } catch (error) {
@@ -49,6 +85,7 @@ export default function LabaRugi() {
   }
 
   useEffect(() => {
+    fetchInitialData()
     fetchData()
   }, []) // Fetch on mount
 
@@ -251,48 +288,80 @@ export default function LabaRugi() {
             {/* Search and filter */}
             <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 p-3 md:p-4">
-                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="relative">
+                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5 items-end">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.labaRugi?.product || 'Product'}</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowProductModal(true)}
+                      className="flex w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-left text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:text-sm"
+                    >
+                      <span className="truncate">
+                        {selectedProduct ? selectedProduct.name : (t.common?.all || 'All Products')}
+                      </span>
+                      <TagIcon className="ml-2 h-4 w-4 text-slate-400" />
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.labaRugi?.dateFrom || 'From'}</label>
                     <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      placeholder={t.labaRugi?.dateFrom || 'From Date'}
                       className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                     />
                   </div>
-                  <div className="relative">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t.labaRugi?.dateTo || 'To'}</label>
                     <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
-                      placeholder={t.labaRugi?.dateTo || 'To Date'}
                       className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 md:text-sm"
                     />
                   </div>
-                  <button
-                    onClick={fetchData}
-                    disabled={loading}
-                    className="inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-50 md:text-sm"
-                  >
-                    <ChartBarIcon className="h-4 w-4" />
-                    {t.labaRugi.filter}
-                  </button>
-                  {(startDate || endDate) && (
+                  <div className="flex gap-2">
                     <button
-                      type="button"
-                      onClick={() => {
-                        setStartDate('')
-                        setEndDate('')
-                      }}
-                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:text-sm"
+                      onClick={fetchData}
+                      disabled={loading}
+                      className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-primary-600 px-3 py-2 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:opacity-50 md:text-sm"
                     >
-                      {t.auditTrail?.clearDates || 'Clear Dates'}
+                      <ChartBarIcon className="h-4 w-4" />
+                      {t.labaRugi.filter}
                     </button>
-                  )}
+                    {(selectedProductId || startDate || endDate) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedProductId(null)
+                          setStartDate('')
+                          setEndDate('')
+                          // Trigger fetch after clearing is handled by the user clicking filter again or we can trigger it here
+                        }}
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 md:text-sm"
+                        title={t.auditTrail?.clearDates || 'Clear Filters'}
+                      >
+                        <Squares2X2Icon className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </section>
+
+            <ProductSelectionModal
+              isOpen={showProductModal}
+              onClose={() => setShowProductModal(false)}
+              onSelect={(pid) => {
+                setSelectedProductId(pid)
+                setShowProductModal(false)
+              }}
+              products={products}
+              productStocks={productStocks}
+              uoms={uoms}
+              disableOutOfStock={false}
+              showStock={true}
+            />
 
             {/* Daily Details Table */}
             <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">

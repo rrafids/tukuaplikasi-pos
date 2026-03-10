@@ -714,6 +714,8 @@ export const id = {
     cogs: 'Harga Pokok Penjualan (HPP)',
     grossProfit: 'Laba Kotor',
     procurements: 'Pembelian Stok (Arus Keluar)',
+    product: 'Produk',
+    selectProduct: 'Pilih Produk',
     dateFrom: 'Dari Tanggal',
     dateTo: 'Sampai Tanggal',
     filter: 'Terapkan',

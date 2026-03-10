@@ -141,6 +141,9 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                 {appName}
               </h1>
               <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">{t.invoice.posName}</p>
+              {whatsappNumber && (
+                <p className="mt-1 text-xs text-slate-500 print:mt-0.5 print:text-[9pt] print:font-normal">WA: {whatsappNumber}</p>
+              )}
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 
@@ -269,9 +272,6 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             {/* Footer */}
             <div className="mt-4 border-t-2 border-slate-900 pt-2 text-center text-xs text-slate-700 print:mt-2 print:border-t-2 print:pt-1 print:text-[9pt] print:font-medium">
               <p className="print:font-semibold">{t.invoice.thankYou}</p>
-              {whatsappNumber && (
-                <p className="mt-1 print:mt-0.5 print:font-normal">WA: {whatsappNumber}</p>
-              )}
             </div>
           </div>
         </div>
