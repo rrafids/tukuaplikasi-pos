@@ -31,7 +31,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
 
   return (
     <>
-      {/* Print styles for 58mm thermal printer */}
+      {/* Print styles for 80mm thermal printer */}
       <style>
         {`
           @media print {
@@ -46,8 +46,8 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
               position: absolute;
               left: 0;
               top: 0;
-              width: 58mm;
-              max-width: 58mm;
+              width: 80mm;
+              max-width: 80mm;
               padding: 2mm 3mm;
               font-family: 'Arial', 'Helvetica', sans-serif;
               font-size: 11pt;
@@ -62,7 +62,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             }
             @page {
               margin: 0;
-              size: 58mm auto;
+              size: 80mm auto;
             }
             .invoice-container h1,
             .invoice-container h2,
@@ -111,7 +111,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
 
       {/* Overlay */}
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[58mm] print:max-w-[58mm]">
+        <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[80mm] print:max-w-[80mm]">
           {/* Header with print button */}
           <div className="no-print flex items-center justify-between border-b border-slate-200 p-4">
             <h2 className="text-lg font-semibold text-slate-900">{t.invoice.title}</h2>
@@ -196,7 +196,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
                         {index + 1}
                       </td>
                       <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
-                        <div className="print:max-w-[20mm] print:font-semibold">{item.product_name}</div>
+                        <div className="print:max-w-[35mm] print:font-semibold">{item.product_name}</div>
                         <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
                           {item.quantity} × {formatCurrency(item.unit_price)}
                         </div>
