@@ -38,14 +38,26 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
             body * {
               visibility: hidden;
             }
+            .invoice-overlay {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: transparent !important;
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
+            }
             .invoice-container,
             .invoice-container * {
               visibility: visible;
             }
             .invoice-container {
-              position: absolute;
-              left: 0;
-              top: 0;
+              position: relative !important;
+              left: 0 !important;
+              top: 0 !important;
+              margin: 0 !important;
               width: 80mm;
               max-width: 80mm;
               padding: 2mm 3mm;
@@ -110,7 +122,7 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
       </style>
 
       {/* Overlay */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="invoice-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[80mm] print:max-w-[80mm]">
           {/* Header with print button */}
           <div className="no-print flex items-center justify-between border-b border-slate-200 p-4">

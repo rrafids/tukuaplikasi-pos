@@ -360,7 +360,7 @@ export default function Sales() {
         item.uom_id = product?.uom_id ?? null
         item.converted_quantity = null
       } else if (field === 'quantity') {
-        const qty = typeof value === 'number' ? value : parseFloat(String(value))
+        const qty = typeof value === 'number' ? value : parseInt(String(value), 10) || 0
         item.quantity = qty
         // Recalculate conversion if UOM is different
         if (item.uom_id && item.product_uom_id && item.uom_id !== item.product_uom_id) {
@@ -635,6 +635,14 @@ export default function Sales() {
         ])
       })
 
+      // Add summary total revenue row in Excel as well
+      const summaryTotalRevenue = salesSummary.reduce((sum, item) => sum + item.revenue, 0)
+      aoaData.push([
+        { v: 'Total Overall Revenue', s: { font: { bold: true }, border: bodyStyle.border } },
+        { v: '', s: bodyStyle },
+        { v: `Rp ${summaryTotalRevenue.toLocaleString('id-ID')}`, s: { font: { bold: true, color: { rgb: "059669" } }, border: bodyStyle.border } }
+      ])
+
       // Add empty row separator
       aoaData.push([])
       aoaData.push([])
@@ -645,7 +653,7 @@ export default function Sales() {
       // Header row for transactions
       const detailsHeader = [
         'Date', 'Location', 'Customer', 'Location Type', 'Product', 'Quantity',
-        'Buy Price', 'Sell Price', 'Subtotal', 'Discount', 'Discount Amount',
+        'Sell Price', 'Final Price', 'Subtotal', 'Discount', 'Discount Amount',
         'Total Amount', 'Payment Method', 'Notes'
       ].map(text => ({ v: text, s: headerStyle }))
       aoaData.push(detailsHeader)
@@ -673,8 +681,8 @@ export default function Sales() {
             { v: sale.location_type, s: bodyStyle },
             { v: '-', s: bodyStyle }, // Product
             { v: '-', s: bodyStyle }, // Quantity
-            { v: '-', s: bodyStyle }, // Buy Price
             { v: '-', s: bodyStyle }, // Sell Price
+            { v: '-', s: bodyStyle }, // Final Price
             { v: `Rp ${subtotal.toLocaleString('id-ID')}`, s: bodyStyle }, // Subtotal
             { v: discountDisplay, s: bodyStyle },
             { v: discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-', s: bodyStyle },
@@ -684,6 +692,8 @@ export default function Sales() {
           ])
         } else {
           sale.items.forEach((item, index) => {
+            const itemDiscount = discountAmount * (item.subtotal / Math.max(subtotal, 1));
+            const finalPrice = (item.subtotal - itemDiscount) / item.quantity;
             aoaData.push([
               { v: index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '', s: bodyStyle },
               { v: index === 0 ? sale.location_name : '', s: bodyStyle },
@@ -691,8 +701,8 @@ export default function Sales() {
               { v: index === 0 ? sale.location_type : '', s: bodyStyle },
               { v: item.product_name, s: bodyStyle },
               { v: item.quantity, s: bodyStyle },
-              { v: products.find(p => p.id === item.product_id)?.price || 0, s: bodyStyle },
               { v: item.unit_price, s: bodyStyle },
+              { v: finalPrice, s: bodyStyle },
               { v: `Rp ${item.subtotal.toLocaleString('id-ID')}`, s: bodyStyle },
               { v: index === 0 ? discountDisplay : '', s: bodyStyle },
               { v: index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '', s: bodyStyle },
@@ -938,6 +948,14 @@ export default function Sales() {
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot className="bg-slate-50 text-slate-900 border-t border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold text-right" colSpan={2}>Total Overall Revenue</th>
+                        <th className="px-4 py-3 font-semibold text-right text-emerald-600">
+                          Rp {salesSummary.reduce((sum, item) => sum + item.revenue, 0).toLocaleString('id-ID')}
+                        </th>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </div>
@@ -1411,14 +1429,15 @@ export default function Sales() {
                             </label>
                             <input
                               type="number"
-                              min={0.01}
-                              step="0.01"
+                              min={1}
+                              step="1"
                               max={item.available_stock}
                               required
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateItem(index, 'quantity', e.target.value)
-                              }
+                              value={item.quantity === 0 ? '' : item.quantity}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '')
+                                updateItem(index, 'quantity', val ? parseInt(val, 10) : 0)
+                              }}
                               className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-xs text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
                             />
                           </div>
