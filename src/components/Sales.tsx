@@ -68,6 +68,8 @@ export default function Sales() {
   const [editingId, setEditingId] = useState<number | null>(null)
   const [showDeleted, setShowDeleted] = useState(false)
   const [printingSale, setPrintingSale] = useState<SaleWithItems | null>(null)
+  const [selectingPrintSale, setSelectingPrintSale] = useState<SaleWithItems | null>(null)
+  const [selectingPrintType, setSelectingPrintType] = useState<'consumer' | 'kitchen' | 'bar'>('consumer')
   const [selectingProductForIndex, setSelectingProductForIndex] = useState<number | null>(null)
   const [form, setForm] = useState<SaleFormState>({
     location_id: '',
@@ -472,8 +474,9 @@ export default function Sales() {
         const updatedList = await listSales()
         setSales(updatedList)
         toast.success(t.sales.created)
-        // Automatically show print invoice popup
-        setPrintingSale(createdSale)
+        closeForm()
+        // Show print selection modal instead of immediate invoice
+        setSelectingPrintSale(createdSale)
       } else {
         const updated = await updateSale(editingId, {
           location_id: parseInt(form.location_id, 10),
@@ -1622,11 +1625,93 @@ export default function Sales() {
         uoms={uoms}
       />
 
+      {/* Print Selection Modal */}
+      {selectingPrintSale && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
+            <div className="bg-gradient-to-r from-primary-600 to-indigo-600 px-6 py-8 text-center text-white">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur-md">
+                <PrinterIcon className="h-8 w-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold md:text-2xl">Pilih Target Print</h3>
+              <p className="mt-2 text-sm text-primary-100">
+                Silahkan pilih dokumen yang ingin Anda cetak sekarang.
+              </p>
+            </div>
+            
+            <div className="grid gap-4 p-6 md:grid-cols-3">
+              <button
+                onClick={() => {
+                  setPrintingSale(selectingPrintSale)
+                  setSelectingPrintSale(null)
+                }}
+                className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                  <ShoppingBagIcon className="h-6 w-6" />
+                </div>
+                <div className="text-center">
+                  <span className="block text-sm font-bold text-slate-900">Consumer</span>
+                  <span className="text-[10px] text-slate-500 line-clamp-1">Struk Belanja</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setPrintingSale(selectingPrintSale)
+                  setSelectingPrintType('kitchen')
+                  setSelectingPrintSale(null)
+                }}
+                className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <PrinterIcon className="h-6 w-6" />
+                </div>
+                <div className="text-center">
+                  <span className="block text-sm font-bold text-slate-900">Kitchen</span>
+                  <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Dapur</span>
+                </div>
+              </button>
+
+              <button
+                onClick={() => {
+                  setPrintingSale(selectingPrintSale)
+                  setSelectingPrintType('bar')
+                  setSelectingPrintSale(null)
+                }}
+                className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <PrinterIcon className="h-6 w-6" />
+                </div>
+                <div className="text-center">
+                  <span className="block text-sm font-bold text-slate-900">Bar</span>
+                  <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Minuman</span>
+                </div>
+              </button>
+            </div>
+
+            <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex justify-end">
+              <button
+                onClick={() => setSelectingPrintSale(null)}
+                className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+              >
+                Selesai / Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Invoice Modal */}
       {printingSale && (
         <Invoice
           sale={printingSale}
-          onClose={() => setPrintingSale(null)}
+          initialPrintType={selectingPrintType}
+          onClose={() => {
+            setPrintingSale(null)
+            setSelectingPrintType('consumer')
+          }}
         />
       )}
     </div>

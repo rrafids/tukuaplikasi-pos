@@ -36,7 +36,7 @@ export type SaleWithItems = SaleRow & {
   location_name: string
   location_type: string
   user_name: string | null
-  items: Array<SaleItemRow & { product_name: string }>
+  items: Array<SaleItemRow & { product_name: string; product_print_target: 'general' | 'kitchen' | 'bar'; uom_abbreviation?: string | null; product_category?: string | null }>
 }
 
 // Get the database path
@@ -216,7 +216,7 @@ export async function listSales(): Promise<SaleWithItems[]> {
     const salesWithItems: SaleWithItems[] = await Promise.all(
       sales.map(async (sale) => {
         const items = await db.select<
-          Array<SaleItemRow & { product_name: string }>
+          Array<SaleItemRow & { product_name: string; product_print_target: 'general' | 'kitchen' | 'bar' }>
         >(
           `SELECT 
             si.id,
@@ -227,9 +227,15 @@ export async function listSales(): Promise<SaleWithItems[]> {
             si.subtotal,
             si.uom_id,
             si.created_at,
-            p.name as product_name
+            p.name as product_name,
+            p.print_target as product_print_target,
+            uom.abbreviation as uom_abbreviation,
+            (SELECT s.name FROM subcategories s 
+             INNER JOIN product_subcategories ps ON s.id = ps.subcategory_id 
+             WHERE ps.product_id = p.id LIMIT 1) as product_category
            FROM sales_items si
            INNER JOIN products p ON si.product_id = p.id
+           LEFT JOIN uoms uom ON si.uom_id = uom.id
            WHERE si.sale_id = $1 AND p.deleted_at IS NULL
            ORDER BY si.id`,
           [sale.id],
@@ -464,7 +470,7 @@ export async function createSale(input: {
 
     // Get items with product names
     const items = await db.select<
-      Array<SaleItemRow & { product_name: string }>
+      Array<SaleItemRow & { product_name: string; product_print_target: 'general' | 'kitchen' | 'bar'; uom_abbreviation?: string | null }>
     >(
       `SELECT 
         si.id,
@@ -475,9 +481,15 @@ export async function createSale(input: {
         si.subtotal,
         si.uom_id,
         si.created_at,
-        p.name as product_name
+        p.name as product_name,
+        p.print_target as product_print_target,
+        uom.abbreviation as uom_abbreviation,
+        (SELECT s.name FROM subcategories s 
+         INNER JOIN product_subcategories ps ON s.id = ps.subcategory_id 
+         WHERE ps.product_id = p.id LIMIT 1) as product_category
        FROM sales_items si
        INNER JOIN products p ON si.product_id = p.id
+       LEFT JOIN uoms uom ON si.uom_id = uom.id
        WHERE si.sale_id = $1
        ORDER BY si.id`,
       [sale.id],
@@ -696,7 +708,7 @@ export async function updateSale(
     const updatedSale = updatedRows[0]
 
     const updatedItems = await db.select<
-      Array<SaleItemRow & { product_name: string }>
+      Array<SaleItemRow & { product_name: string; product_print_target: 'general' | 'kitchen' | 'bar'; uom_abbreviation?: string | null; product_category?: string | null }>
     >(
       `SELECT 
         si.id,
@@ -707,9 +719,15 @@ export async function updateSale(
         si.subtotal,
         si.uom_id,
         si.created_at,
-        p.name as product_name
+        p.name as product_name,
+        p.print_target as product_print_target,
+        uom.abbreviation as uom_abbreviation,
+        (SELECT s.name FROM subcategories s 
+         INNER JOIN product_subcategories ps ON s.id = ps.subcategory_id 
+         WHERE ps.product_id = p.id LIMIT 1) as product_category
        FROM sales_items si
        INNER JOIN products p ON si.product_id = p.id
+       LEFT JOIN uoms uom ON si.uom_id = uom.id
        WHERE si.sale_id = $1
        ORDER BY si.id`,
       [id],

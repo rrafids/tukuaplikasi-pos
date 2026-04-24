@@ -9,6 +9,7 @@ export type ProductRow = {
   buy_price: number | null
   barcode: string | null
   uom_id: number | null
+  print_target: 'general' | 'kitchen' | 'bar'
   created_at: string
   updated_at: string
   deleted_at: string | null
@@ -62,6 +63,7 @@ async function getDb() {
           buy_price REAL,
           barcode TEXT UNIQUE,
           uom_id INTEGER,
+          print_target TEXT DEFAULT 'general' CHECK(print_target IN ('general', 'kitchen', 'bar')),
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL,
           deleted_at TEXT,
@@ -91,6 +93,14 @@ async function getDb() {
       } catch (error) {
         // Column already exists, ignore error
         console.log('[DB] buy_price column may already exist')
+      }
+
+      // Add print_target column if it doesn't exist (for existing databases)
+      try {
+        await db.execute(`ALTER TABLE products ADD COLUMN print_target TEXT DEFAULT 'general' CHECK(print_target IN ('general', 'kitchen', 'bar'))`)
+      } catch (error) {
+        // Column already exists, ignore error
+        console.log('[DB] print_target column may already exist')
       }
       console.log('[DB] Table created/verified successfully')
     } catch (error) {
@@ -122,6 +132,7 @@ export async function createProduct(input: {
   buy_price?: number | null
   barcode?: string | null
   uom_id?: number | null
+  print_target?: 'general' | 'kitchen' | 'bar'
 }): Promise<ProductRow> {
   try {
     const db = await getDb()
@@ -129,8 +140,8 @@ export async function createProduct(input: {
     console.log('[DB] Executing INSERT:', input)
     await db.execute(
       `
-        INSERT INTO products (name, price, buy_price, barcode, uom_id, created_at, updated_at, deleted_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NULL)
+        INSERT INTO products (name, price, buy_price, barcode, uom_id, print_target, created_at, updated_at, deleted_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULL)
       `,
       [
         input.name,
@@ -138,6 +149,7 @@ export async function createProduct(input: {
         input.buy_price ?? null,
         input.barcode?.trim() || null,
         input.uom_id ?? null,
+        input.print_target ?? 'general',
         now,
         now,
       ],
@@ -161,6 +173,7 @@ export async function updateProduct(
     buy_price?: number | null
     barcode?: string | null
     uom_id?: number | null
+    print_target?: 'general' | 'kitchen' | 'bar'
   },
 ): Promise<ProductRow | null> {
   const db = await getDb()
@@ -181,8 +194,9 @@ export async function updateProduct(
           buy_price = $3,
           barcode = $4,
           uom_id = $5,
-          updated_at = $6
-      WHERE id = $7
+          print_target = $6,
+          updated_at = $7
+      WHERE id = $8
     `,
     [
       input.name,
@@ -192,6 +206,7 @@ export async function updateProduct(
         ? (input.barcode?.trim() || null)
         : oldValues?.barcode ?? null,
       input.uom_id ?? null,
+      input.print_target ?? oldValues?.print_target ?? 'general',
       now,
       id,
     ],
@@ -214,6 +229,7 @@ export async function updateProduct(
         buy_price: oldValues.buy_price,
         barcode: oldValues.barcode,
         uom_id: oldValues.uom_id,
+        print_target: oldValues.print_target,
       },
       new_values: {
         name: updated.name,
@@ -221,6 +237,7 @@ export async function updateProduct(
         buy_price: updated.buy_price,
         barcode: updated.barcode,
         uom_id: updated.uom_id,
+        print_target: updated.print_target,
       },
       notes: `Product updated: ${updated.name}`,
     })

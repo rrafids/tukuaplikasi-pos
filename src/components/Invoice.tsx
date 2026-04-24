@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react'
 import type { SaleWithItems } from '../db/sales'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
@@ -5,11 +6,14 @@ import { useSettings } from '../contexts/SettingsContext'
 interface InvoiceProps {
   sale: SaleWithItems
   onClose?: () => void
+  initialPrintType?: 'consumer' | 'kitchen' | 'bar'
 }
 
-export default function Invoice({ sale, onClose }: InvoiceProps) {
+export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }: InvoiceProps) {
   const { t } = useLanguage()
   const { appName, whatsappNumber } = useSettings()
+  const [printType, setPrintType] = useState<'consumer' | 'kitchen' | 'bar'>(initialPrintType)
+
   const formatCurrency = (value: number) => {
     return `Rp ${value.toLocaleString('id-ID')}`
   }
@@ -28,6 +32,25 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
   const handlePrint = () => {
     window.print()
   }
+
+  const filteredItems = useMemo(() => {
+    if (printType === 'consumer') return sale.items
+    return sale.items.filter(item => item.product_print_target === printType)
+  }, [sale.items, printType])
+
+  // Group items for kitchen and bar
+  const groupedItems = useMemo(() => {
+    if (printType === 'consumer') return { 'All Items': filteredItems }
+    
+    // Grouping for kitchen/bar 
+    const groups: Record<string, typeof filteredItems> = {}
+    filteredItems.forEach(item => {
+      const groupName = (item.product_category || 'General').toUpperCase()
+      if (!groups[groupName]) groups[groupName] = []
+      groups[groupName].push(item)
+    })
+    return groups
+  }, [filteredItems, printType])
 
   return (
     <>
@@ -125,23 +148,59 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
       <div className="invoice-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
         <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[80mm] print:max-w-[80mm]">
           {/* Header with print button */}
-          <div className="no-print flex items-center justify-between border-b border-slate-200 p-4">
-            <h2 className="text-lg font-semibold text-slate-900">{t.invoice.title}</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={handlePrint}
-                className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
-              >
-                Print
-              </button>
-              {onClose && (
+          <div className="no-print border-b border-slate-200 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-slate-900">{t.invoice.title}</h2>
+              <div className="flex gap-2">
                 <button
-                  onClick={() => onClose?.()}
-                  className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  onClick={handlePrint}
+                  className="rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
                 >
-                  {t.common.close}
+                  Print
                 </button>
-              )}
+                {onClose && (
+                  <button
+                    onClick={() => onClose?.()}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  >
+                    {t.common.close}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Print Selection Tabs */}
+            <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
+              <button
+                onClick={() => setPrintType('consumer')}
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  printType === 'consumer'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Consumer
+              </button>
+              <button
+                onClick={() => setPrintType('kitchen')}
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  printType === 'kitchen'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Kitchen
+              </button>
+              <button
+                onClick={() => setPrintType('bar')}
+                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                  printType === 'bar'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Bar
+              </button>
             </div>
           </div>
 
@@ -152,9 +211,17 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
                 {appName}
               </h1>
-              <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">{t.invoice.posName}</p>
-              {whatsappNumber && (
-                <p className="mt-1 text-xs text-slate-500 print:mt-0.5 print:text-[9pt] print:font-normal">WA: {whatsappNumber}</p>
+              {printType === 'consumer' ? (
+                <>
+                  <p className="text-sm text-slate-600 print:text-[10pt] print:font-medium">{t.invoice.posName}</p>
+                  {whatsappNumber && (
+                    <p className="mt-1 text-xs text-slate-500 print:mt-0.5 print:text-[9pt] print:font-normal">WA: {whatsappNumber}</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm font-bold text-slate-900 print:text-[11pt] print:uppercase">
+                  {printType} ORDER
+                </p>
               )}
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
@@ -184,93 +251,113 @@ export default function Invoice({ sale, onClose }: InvoiceProps) {
 
             {/* Items Table */}
             <div className="mb-4 print:mb-2">
-              <table className="w-full border-collapse print:text-xs">
-                <thead>
-                  <tr className="border-b-2 border-slate-900 print:border-b-2">
-                    <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      #
-                    </th>
-                    <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      {t.invoice.item}
-                    </th>
-                    <th className="px-1 py-1 text-center text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      {t.invoice.qty}
-                    </th>
-                    <th className="px-1 py-1 text-right text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                      {t.invoice.total}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sale.items.map((item, index) => (
-                    <tr key={item.id} className="border-b border-slate-900 print:border-b">
-                      <td className="px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
-                        {index + 1}
-                      </td>
-                      <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
-                        <div className="print:max-w-[35mm] print:font-semibold">{item.product_name}</div>
-                        <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
-                          {item.quantity} × {formatCurrency(item.unit_price)}
-                        </div>
-                      </td>
-                      <td className="px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
-                        {item.quantity}
-                      </td>
-                      <td className="px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                        {formatCurrency(item.subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {Object.entries(groupedItems).map(([groupName, items]) => (
+                <div key={groupName} className="mb-4 last:mb-0">
+                  {printType !== 'consumer' && (
+                    <h3 className="mb-1 text-xs font-bold uppercase text-slate-900 print:text-[10pt] print:border-b print:border-slate-400">
+                      {groupName}
+                    </h3>
+                  )}
+                  <table className="w-full border-collapse print:text-xs">
+                    <thead>
+                      <tr className="border-b-2 border-slate-900 print:border-b-2">
+                        <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                          #
+                        </th>
+                        <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                          {t.invoice.item}
+                        </th>
+                        <th className="px-1 py-1 text-center text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                          {t.invoice.qty}
+                        </th>
+                        {printType === 'consumer' && (
+                          <th className="px-1 py-1 text-right text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                            {t.invoice.total}
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {items.map((item, index) => (
+                        <tr key={item.id} className="border-b border-slate-900 print:border-b">
+                          <td className="px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
+                            {index + 1}
+                          </td>
+                          <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
+                            <div className="print:max-w-[45mm] print:font-semibold">{item.product_name}</div>
+                            {printType === 'consumer' && (
+                              <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
+                                {item.quantity} × {formatCurrency(item.unit_price)}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                            {item.quantity} {item.uom_abbreviation || ''}
+                          </td>
+                          {printType === 'consumer' && (
+                            <td className="px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                              {formatCurrency(item.subtotal)}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+              {filteredItems.length === 0 && (
+                <p className="py-4 text-center text-sm text-slate-500">No items for this category.</p>
+              )}
             </div>
 
             {/* Totals */}
-            <div className="mb-4 print:mb-2">
-              <div className="space-y-1 border-t-2 border-slate-900 pt-2 print:border-t-2 print:pt-1.5">
-                {(() => {
-                  const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
-                  const discountAmount =
-                    sale.discount_type && sale.discount_value !== null
-                      ? sale.discount_type === 'percentage'
-                        ? (subtotal * sale.discount_value) / 100
-                        : sale.discount_value
-                      : 0
-                  const finalTotal = subtotal - discountAmount
+            {printType === 'consumer' && (
+              <div className="mb-4 print:mb-2">
+                <div className="space-y-1 border-t-2 border-slate-900 pt-2 print:border-t-2 print:pt-1.5">
+                  {(() => {
+                    const subtotal = sale.items.reduce((sum, item) => sum + item.subtotal, 0)
+                    const discountAmount =
+                      sale.discount_type && sale.discount_value !== null
+                        ? sale.discount_type === 'percentage'
+                          ? (subtotal * sale.discount_value) / 100
+                          : sale.discount_value
+                        : 0
+                    const finalTotal = subtotal - discountAmount
 
-                  return (
-                    <>
-                      <div className="flex justify-between text-sm print:text-[10pt]">
-                        <span className="font-semibold text-slate-900 print:font-bold">{t.invoice.subtotal}</span>
-                        <span className="font-medium text-slate-900 print:font-semibold">
-                          {formatCurrency(subtotal)}
-                        </span>
-                      </div>
-                      {discountAmount > 0 && (
+                    return (
+                      <>
                         <div className="flex justify-between text-sm print:text-[10pt]">
-                          <span className="font-semibold text-slate-900 print:font-bold">
-                            {t.invoice.discount}
-                            {sale.discount_type === 'percentage' && sale.discount_value
-                              ? ` (${sale.discount_value}%)`
-                              : ''}
-                            :
-                          </span>
+                          <span className="font-semibold text-slate-900 print:font-bold">{t.invoice.subtotal}</span>
                           <span className="font-medium text-slate-900 print:font-semibold">
-                            - {formatCurrency(discountAmount)}
+                            {formatCurrency(subtotal)}
                           </span>
                         </div>
-                      )}
-                      <div className="flex justify-between text-lg font-bold print:text-[12pt] print:font-bold print:mt-1">
-                        <span className="text-slate-900">TOTAL:</span>
-                        <span className="text-slate-900">
-                          {formatCurrency(finalTotal)}
-                        </span>
-                      </div>
-                    </>
-                  )
-                })()}
+                        {discountAmount > 0 && (
+                          <div className="flex justify-between text-sm print:text-[10pt]">
+                            <span className="font-semibold text-slate-900 print:font-bold">
+                              {t.invoice.discount}
+                              {sale.discount_type === 'percentage' && sale.discount_value
+                                ? ` (${sale.discount_value}%)`
+                                : ''}
+                              :
+                            </span>
+                            <span className="font-medium text-slate-900 print:font-semibold">
+                              - {formatCurrency(discountAmount)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-lg font-bold print:text-[12pt] print:font-bold print:mt-1">
+                          <span className="text-slate-900">TOTAL:</span>
+                          <span className="text-slate-900">
+                            {formatCurrency(finalTotal)}
+                          </span>
+                        </div>
+                      </>
+                    )
+                  })()}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Notes */}
             {sale.notes && (

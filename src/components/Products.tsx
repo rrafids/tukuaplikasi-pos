@@ -43,6 +43,7 @@ type ProductFormState = {
   barcode: string
   uom_id: string
   subcategoryIds: number[]
+  print_target: 'general' | 'kitchen' | 'bar'
 }
 
 export default function Products() {
@@ -76,6 +77,7 @@ export default function Products() {
     barcode: '',
     uom_id: '',
     subcategoryIds: [],
+    print_target: 'general',
   })
   const [printingBarcode, setPrintingBarcode] = useState<Product | null>(null)
   const [showBulkUpload, setShowBulkUpload] = useState(false)
@@ -160,6 +162,7 @@ export default function Products() {
       barcode: '',
       uom_id: '',
       subcategoryIds: [],
+      print_target: 'general',
     })
 
   const openCreate = async () => {
@@ -192,6 +195,7 @@ export default function Products() {
       barcode: product.barcode || '',
       uom_id: product.uom_id?.toString() ?? '',
       subcategoryIds: [],
+      print_target: product.print_target ?? 'general',
     })
     // Load subcategories, UOMs, and product's subcategories
     try {
@@ -243,6 +247,7 @@ export default function Products() {
             buy_price: buyPrice,
             barcode: form.barcode.trim() || null,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
+            print_target: form.print_target,
           })
           console.log('[Products] Product created in DB:', created)
 
@@ -273,6 +278,7 @@ export default function Products() {
             buy_price: buyPrice,
             barcode: form.barcode.trim() || null,
             uom_id: form.uom_id ? parseInt(form.uom_id, 10) : null,
+            print_target: form.print_target,
           })
           if (updated) {
             console.log('[Products] Product updated in DB:', updated)
@@ -392,6 +398,15 @@ export default function Products() {
           'UOM ID': '',
           'Subcategory IDs': '',
         },
+        {
+          'Product Name': 'MacBook Pro 14" M3',
+          'Selling Price': 2499,
+          'Buy Price': 2100,
+          'Barcode': '888000111',
+          'UOM ID': 1,
+          'Print Category': 'GENERAL',
+          'Subcategory IDs': '1,2',
+        },
       ]
 
       // Create workbook and worksheet
@@ -435,6 +450,7 @@ export default function Products() {
             'Buy Price'?: number | string | null
             'Barcode'?: string | null
             'UOM ID'?: number | string | null
+            'Print Category'?: string | null
             'Subcategory IDs'?: string | null
           }>
 
@@ -451,6 +467,7 @@ export default function Products() {
             buy_price: number | null
             barcode: string | null
             uom_id: number | null
+            print_target: 'general' | 'kitchen' | 'bar'
             subcategoryIds: number[]
           }> = []
 
@@ -519,6 +536,7 @@ export default function Products() {
               buy_price,
               barcode: row['Barcode']?.toString().trim() || null,
               uom_id,
+              print_target: (row['Print Category']?.toString().toLowerCase() as any) || 'general',
               subcategoryIds,
             })
           }
@@ -550,6 +568,7 @@ export default function Products() {
                 buy_price: productData.buy_price,
                 barcode: productData.barcode,
                 uom_id: productData.uom_id,
+                print_target: productData.print_target,
               })
 
               // Set subcategories if provided
@@ -697,6 +716,7 @@ export default function Products() {
           'Buy Price': product.buy_price || 0,
           'Barcode': product.barcode || '-',
           'UOM': uomName,
+          'Print Category': product.print_target?.toUpperCase() || 'GENERAL',
           'Categories': subcategoryNames,
           'Total Stock': totalStock,
           'Stocks per Location': locationStocksString,
@@ -974,6 +994,7 @@ export default function Products() {
                   <th className="px-3 py-2 md:px-4 md:py-3">{t.products.buyPrice}</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">{t.products.price}</th>
                   <th className="px-3 py-2 md:px-4 md:py-3">UOM</th>
+                  <th className="px-3 py-2 md:px-4 md:py-3">Print Category</th>
                   <th className="hidden px-3 py-2 md:table-cell md:px-4 md:py-3">
                     Created
                   </th>
@@ -1040,6 +1061,17 @@ export default function Products() {
                           {product.uom_id
                             ? uoms.find((u) => u.id === product.uom_id)?.abbreviation ?? '-'
                             : '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-3 py-2 text-xs md:px-4 md:py-3 md:text-sm">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                            product.print_target === 'kitchen' 
+                              ? 'bg-orange-100 text-orange-700' 
+                              : product.print_target === 'bar' 
+                                ? 'bg-blue-100 text-blue-700' 
+                                : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {product.print_target?.toUpperCase() || 'GENERAL'}
+                          </span>
                         </td>
                         <td className="hidden whitespace-nowrap px-3 py-2 text-xs text-slate-500 md:px-4 md:py-3 md:table-cell">
                           <div className="flex flex-col">
@@ -1140,7 +1172,7 @@ export default function Products() {
                         expandedProductId === product.id &&
                         productLocationStocksMap[product.id]?.length > 0 && (
                           <tr key={`${product.id}-expanded`}>
-                            <td colSpan={7} className="bg-slate-50 px-4 py-3">
+                            <td colSpan={8} className="bg-slate-50 px-4 py-3">
                               <div className="rounded-lg border border-slate-200 bg-white p-3">
                                 <div className="mb-2 text-xs font-semibold text-slate-700">
                                   Location Stocks
@@ -1396,6 +1428,24 @@ export default function Products() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-700">
+                  Print Category
+                </label>
+                <select
+                  value={form.print_target}
+                  onChange={(e) => setForm(prev => ({ ...prev, print_target: e.target.value as 'general' | 'kitchen' | 'bar' }))}
+                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                >
+                  <option value="general">General (Standard Invoice)</option>
+                  <option value="kitchen">Kitchen (Food)</option>
+                  <option value="bar">Bar (Drinks)</option>
+                </select>
+                <p className="text-[10px] text-slate-500">
+                  Determines where the product should be printed during order processing.
+                </p>
               </div>
 
               <div className="space-y-1.5">
