@@ -732,6 +732,7 @@ export const en = {
     subtotal: 'Subtotal:',
     discount: 'Discount',
     notes: 'Note:',
+    at: 'at',
     thankYou: 'Thank you for shopping with us!',
   },
 }

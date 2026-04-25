@@ -71,6 +71,7 @@ export default function Sales() {
   const [selectingPrintSale, setSelectingPrintSale] = useState<SaleWithItems | null>(null)
   const [selectingPrintType, setSelectingPrintType] = useState<'consumer' | 'kitchen' | 'bar'>('consumer')
   const [selectingProductForIndex, setSelectingProductForIndex] = useState<number | null>(null)
+  const [viewingSaleDetails, setViewingSaleDetails] = useState<SaleWithItems | null>(null)
   const [form, setForm] = useState<SaleFormState>({
     location_id: '',
     customer_name: '',
@@ -1028,14 +1029,23 @@ export default function Sales() {
                           {sale.user_name || '-'}
                         </td>
                         <td className="px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
-                          <div className="space-y-1">
-                            {sale.items.map((item) => (
-                              <div key={item.id} className="text-xs">
+                          <button
+                            type="button"
+                            onClick={() => setViewingSaleDetails(sale)}
+                            className="group flex flex-col items-start space-y-1 text-left w-full hover:bg-slate-50 transition-colors rounded-md p-1 -m-1"
+                          >
+                            {sale.items.slice(0, 3).map((item) => (
+                              <div key={item.id} className="text-xs truncate max-w-[200px] group-hover:text-primary-600 transition-colors">
                                 {item.product_name} × {item.quantity} @ Rp{' '}
                                 {item.unit_price.toLocaleString('id-ID')}
                               </div>
                             ))}
-                          </div>
+                            {sale.items.length > 3 && (
+                              <div className="text-[10px] font-medium text-primary-600 hover:text-primary-700 group-hover:underline">
+                                {t.common.showing} 3 {t.common.of} {sale.items.length} {t.common.items}...
+                              </div>
+                            )}
+                          </button>
                         </td>
                         <td className="whitespace-nowrap px-3 py-2 text-xs text-slate-700 md:px-4 md:py-3 md:text-sm">
                           {(() => {
@@ -1713,6 +1723,124 @@ export default function Sales() {
             setSelectingPrintType('consumer')
           }}
         />
+      )}
+      {/* Sale Details Modal */}
+      {viewingSaleDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm transition-opacity">
+          <div className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl transition-all scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">
+                  Transaction Details
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {viewingSaleDetails.invoice_number || `#${viewingSaleDetails.id}`} • {new Date(viewingSaleDetails.created_at).toLocaleString('id-ID')}
+                </p>
+              </div>
+              <button
+                onClick={() => setViewingSaleDetails(null)}
+                className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-600"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="max-h-[60vh] overflow-y-auto p-6">
+              <div className="mb-6 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Customer</label>
+                  <p className="text-sm font-semibold text-slate-900">{viewingSaleDetails.customer_name || 'Walk-in Customer'}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cashier</label>
+                  <p className="text-sm font-semibold text-slate-900">{viewingSaleDetails.user_name || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Location</label>
+                  <p className="text-sm font-semibold text-slate-900">{viewingSaleDetails.location_name}</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Payment</label>
+                  <p className="text-sm font-semibold text-slate-900 capitalize">{viewingSaleDetails.payment_method}</p>
+                </div>
+              </div>
+
+              <table className="w-full text-left text-sm">
+                <thead className="sticky top-0 bg-white text-xs font-bold uppercase text-slate-500">
+                  <tr>
+                    <th className="pb-3 pr-4">Item</th>
+                    <th className="pb-3 pr-4 text-center">Qty</th>
+                    <th className="pb-3 pr-4 text-right">Unit Price</th>
+                    <th className="pb-3 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {viewingSaleDetails.items.map((item) => (
+                    <tr key={item.id}>
+                      <td className="py-3 pr-4 font-medium text-slate-900">
+                        {item.product_name}
+                        {item.product_print_target !== 'general' && (
+                          <span className="ml-2 inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                            {item.product_print_target}
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 text-center font-semibold">
+                        {item.quantity} <span className="text-[10px] font-normal text-slate-400 uppercase">{item.uom_abbreviation}</span>
+                      </td>
+                      <td className="py-3 pr-4 text-right">
+                        Rp {item.unit_price.toLocaleString('id-ID')}
+                      </td>
+                      <td className="py-3 text-right font-bold text-slate-900">
+                        Rp {item.subtotal.toLocaleString('id-ID')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4">
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex w-48 justify-between text-sm text-slate-600">
+                  <span>Subtotal:</span>
+                  <span className="font-semibold">Rp {viewingSaleDetails.items.reduce((s, i) => s + i.subtotal, 0).toLocaleString('id-ID')}</span>
+                </div>
+                {viewingSaleDetails.discount_type && (
+                  <div className="flex w-48 justify-between text-sm text-rose-600">
+                    <span>Discount:</span>
+                    <span className="font-semibold">
+                      - Rp {(viewingSaleDetails.items.reduce((s, i) => s + i.subtotal, 0) - viewingSaleDetails.total_amount).toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                )}
+                <div className="mt-1 flex w-48 justify-between text-lg font-bold text-slate-900">
+                  <span>Total:</span>
+                  <span>Rp {viewingSaleDetails.total_amount.toLocaleString('id-ID')}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-2 bg-white px-6 py-4">
+              <button
+                onClick={() => {
+                  setPrintingSale(viewingSaleDetails)
+                  setViewingSaleDetails(null)
+                }}
+                className="flex items-center gap-2 rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-200 transition-all hover:bg-primary-700 active:scale-95"
+              >
+                <PrinterIcon className="h-4 w-4" />
+                Print Invoice
+              </button>
+              <button
+                onClick={() => setViewingSaleDetails(null)}
+                className="rounded-xl border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

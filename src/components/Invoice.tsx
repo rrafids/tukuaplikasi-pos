@@ -20,13 +20,18 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
+    const datePart = date.toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+    })
+    const timePart = date.toLocaleTimeString('id-ID', {
       hour: '2-digit',
       minute: '2-digit',
-    })
+      hour12: false
+    }).replace('.', ':')
+    
+    return `${datePart} ${t.invoice.at || 'pukul'} ${timePart}`
   }
 
   const handlePrint = () => {
@@ -145,8 +150,8 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
       </style>
 
       {/* Overlay */}
-      <div className="invoice-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-        <div className="invoice-container w-full max-w-2xl rounded-lg bg-white shadow-xl print:w-[80mm] print:max-w-[80mm]">
+      <div className="invoice-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity animate-in fade-in duration-200">
+        <div className="invoice-container flex max-h-[95vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl print:max-h-none print:w-[80mm] print:max-w-[80mm] print:overflow-visible">
           {/* Header with print button */}
           <div className="no-print border-b border-slate-200 p-4">
             <div className="flex items-center justify-between mb-4">
@@ -205,7 +210,7 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
           </div>
 
           {/* Invoice Content */}
-          <div className="p-6 print:p-2">
+          <div className="flex-1 overflow-y-auto p-6 print:p-2 print:overflow-visible">
             {/* Company Header */}
             <div className="mb-4 text-center print:mb-2">
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
@@ -226,23 +231,23 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 
-            {/* Invoice Details */}
-            <div className="mb-4 space-y-1 print:mb-2 print:space-y-0.5">
-              <div className="flex justify-between text-sm print:text-[10pt]">
+            {/* Invoice Details stack format */}
+            <div className="mb-4 space-y-2 print:mb-2 print:space-y-1">
+              <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.invoiceNo}</span>
                 <span className="print:font-medium">
                   {sale.invoice_number || `INV-${sale.id.toString().padStart(6, '0')}`}
                 </span>
               </div>
-              <div className="flex justify-between text-sm print:text-[10pt]">
+              <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.date}</span>
                 <span className="print:font-medium">{formatDate(sale.created_at)}</span>
               </div>
-              <div className="flex justify-between text-sm print:text-[10pt]">
+              <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.customer}</span>
                 <span className="print:font-medium">{sale.customer_name || t.invoice.walkIn}</span>
               </div>
-              <div className="flex justify-between text-sm print:text-[10pt]">
+              <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.cashier}</span>
                 <span className="print:font-medium">{sale.user_name || '-'}</span>
               </div>
@@ -251,60 +256,58 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
 
             {/* Items Table */}
             <div className="mb-4 print:mb-2">
-              {Object.entries(groupedItems).map(([groupName, items]) => (
-                <div key={groupName} className="mb-4 last:mb-0">
-                  {printType !== 'consumer' && (
-                    <h3 className="mb-1 text-xs font-bold uppercase text-slate-900 print:text-[10pt] print:border-b print:border-slate-400">
-                      {groupName}
-                    </h3>
-                  )}
-                  <table className="w-full border-collapse print:text-xs">
-                    <thead>
-                      <tr className="border-b-2 border-slate-900 print:border-b-2">
-                        <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                          #
-                        </th>
-                        <th className="px-1 py-1 text-left text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                          {t.invoice.item}
-                        </th>
-                        <th className="px-1 py-1 text-center text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                          {t.invoice.qty}
-                        </th>
-                        {printType === 'consumer' && (
-                          <th className="px-1 py-1 text-right text-xs font-bold uppercase print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                            {t.invoice.total}
-                          </th>
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-slate-900 print:border-b-2">
+                    <th className="px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold">#</th>
+                    <th className="px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.item}</th>
+                    <th className="px-1 py-1 text-center text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.qty}</th>
+                    {printType === 'consumer' && (
+                      <th className="px-1 py-1 text-right text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.total}</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 print:divide-y-0">
+                  {Object.entries(groupedItems).map(([groupName, items]) => (
+                    <tr key={groupName}>
+                      <td colSpan={printType === 'consumer' ? 4 : 3}>
+                        {printType !== 'consumer' && (
+                          <div className="mt-2 mb-1 bg-slate-900 px-2 py-0.5 text-[10pt] font-bold text-white print:mt-2">
+                            {groupName}
+                          </div>
                         )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {items.map((item, index) => (
-                        <tr key={item.id} className="border-b border-slate-900 print:border-b">
-                          <td className="px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
-                            {index + 1}
-                          </td>
-                          <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
-                            <div className="print:max-w-[45mm] print:font-semibold">{item.product_name}</div>
-                            {printType === 'consumer' && (
-                              <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
-                                {item.quantity} × {formatCurrency(item.unit_price)}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                            {item.quantity} {item.uom_abbreviation || ''}
-                          </td>
-                          {printType === 'consumer' && (
-                            <td className="px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                              {formatCurrency(item.subtotal)}
-                            </td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ))}
+                        <table className="w-full">
+                          <tbody>
+                            {items.map((item, index) => (
+                              <tr key={item.id} className="border-b border-slate-900 print:border-b">
+                                <td className="w-6 px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
+                                  {index + 1}
+                                </td>
+                                <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
+                                  <div className="print:max-w-[45mm] print:font-semibold">{item.product_name}</div>
+                                  {printType === 'consumer' && (
+                                    <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
+                                      {item.quantity} × {formatCurrency(item.unit_price)}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="w-16 px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                                  {item.quantity} {item.uom_abbreviation || ''}
+                                </td>
+                                {printType === 'consumer' && (
+                                  <td className="w-24 px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                                    {formatCurrency(item.subtotal)}
+                                  </td>
+                                )}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
               {filteredItems.length === 0 && (
                 <p className="py-4 text-center text-sm text-slate-500">No items for this category.</p>
               )}
@@ -378,4 +381,3 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
     </>
   )
 }
-

@@ -741,6 +741,7 @@ export const id = {
     subtotal: 'Subtotal:',
     discount: 'Diskon',
     notes: 'Catatan:',
+    at: 'pukul',
     thankYou: 'Terima kasih atas kepercayaan anda',
   },
 }
