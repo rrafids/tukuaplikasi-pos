@@ -184,28 +184,32 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Consumer
+                Invoice
               </button>
-              <button
-                onClick={() => setPrintType('kitchen')}
-                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  printType === 'kitchen'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Kitchen
-              </button>
-              <button
-                onClick={() => setPrintType('bar')}
-                className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                  printType === 'bar'
-                    ? 'bg-white text-slate-900 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Bar
-              </button>
+              {sale.items.some(item => item.product_print_target === 'kitchen') && (
+                <button
+                  onClick={() => setPrintType('kitchen')}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    printType === 'kitchen'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Kitchen
+                </button>
+              )}
+              {sale.items.some(item => item.product_print_target === 'bar') && (
+                <button
+                  onClick={() => setPrintType('bar')}
+                  className={`flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                    printType === 'bar'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Bar
+                </button>
+              )}
             </div>
           </div>
 

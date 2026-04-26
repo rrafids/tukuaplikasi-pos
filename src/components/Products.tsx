@@ -1434,15 +1434,17 @@ export default function Products() {
                 <label className="text-xs font-medium text-slate-700">
                   Print Category
                 </label>
-                <select
+                <SearchableSelect
+                  options={[
+                    { value: 'general', label: 'General (Standard Invoice)' },
+                    { value: 'kitchen', label: 'Kitchen (Food)' },
+                    { value: 'bar', label: 'Bar (Drinks)' },
+                  ]}
                   value={form.print_target}
-                  onChange={(e) => setForm(prev => ({ ...prev, print_target: e.target.value as 'general' | 'kitchen' | 'bar' }))}
-                  className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-                >
-                  <option value="general">General (Standard Invoice)</option>
-                  <option value="kitchen">Kitchen (Food)</option>
-                  <option value="bar">Bar (Drinks)</option>
-                </select>
+                  onChange={(val) => setForm(prev => ({ ...prev, print_target: val as 'general' | 'kitchen' | 'bar' }))}
+                  placeholder="Select Print Category"
+                  required
+                />
                 <p className="text-[10px] text-slate-500">
                   Determines where the product should be printed during order processing.
                 </p>

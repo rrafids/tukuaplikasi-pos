@@ -1661,44 +1661,54 @@ export default function Sales() {
                   <ShoppingBagIcon className="h-6 w-6" />
                 </div>
                 <div className="text-center">
-                  <span className="block text-sm font-bold text-slate-900">Consumer</span>
+                  <span className="block text-sm font-bold text-slate-900">Invoice</span>
                   <span className="text-[10px] text-slate-500 line-clamp-1">Struk Belanja</span>
                 </div>
               </button>
 
-              <button
-                onClick={() => {
-                  setPrintingSale(selectingPrintSale)
-                  setSelectingPrintType('kitchen')
-                  setSelectingPrintSale(null)
-                }}
-                className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                  <PrinterIcon className="h-6 w-6" />
-                </div>
-                <div className="text-center">
-                  <span className="block text-sm font-bold text-slate-900">Kitchen</span>
-                  <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Dapur</span>
-                </div>
-              </button>
+              {selectingPrintSale.items.some(item => {
+                // We need to check the product's print target. 
+                // In Sales.tsx, items in the form don't have product_print_target yet, 
+                // but selectingPrintSale is from listSales which has it.
+                // Let's verify SaleWithItems structure in db/sales.ts
+                return (item as any).product_print_target === 'kitchen'
+              }) && (
+                <button
+                  onClick={() => {
+                    setPrintingSale(selectingPrintSale)
+                    setSelectingPrintType('kitchen')
+                    setSelectingPrintSale(null)
+                  }}
+                  className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                    <PrinterIcon className="h-6 w-6" />
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-sm font-bold text-slate-900">Kitchen</span>
+                    <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Dapur</span>
+                  </div>
+                </button>
+              )}
 
-              <button
-                onClick={() => {
-                  setPrintingSale(selectingPrintSale)
-                  setSelectingPrintType('bar')
-                  setSelectingPrintSale(null)
-                }}
-                className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                  <PrinterIcon className="h-6 w-6" />
-                </div>
-                <div className="text-center">
-                  <span className="block text-sm font-bold text-slate-900">Bar</span>
-                  <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Minuman</span>
-                </div>
-              </button>
+              {selectingPrintSale.items.some(item => (item as any).product_print_target === 'bar') && (
+                <button
+                  onClick={() => {
+                    setPrintingSale(selectingPrintSale)
+                    setSelectingPrintType('bar')
+                    setSelectingPrintSale(null)
+                  }}
+                  className="group relative flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-primary-500 hover:bg-primary-50 hover:shadow-md"
+                >
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <PrinterIcon className="h-6 w-6" />
+                  </div>
+                  <div className="text-center">
+                    <span className="block text-sm font-bold text-slate-900">Bar</span>
+                    <span className="text-[10px] text-slate-500 line-clamp-1">Pesanan Minuman</span>
+                  </div>
+                </button>
+              )}
             </div>
 
             <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex justify-end">
