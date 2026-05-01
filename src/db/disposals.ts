@@ -136,7 +136,7 @@ export async function listDisposals(): Promise<
        FROM disposals d
        INNER JOIN products p ON d.product_id = p.id
        INNER JOIN locations l ON d.location_id = l.id
-       WHERE d.deleted_at IS NULL AND p.deleted_at IS NULL AND l.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
        ORDER BY d.created_at DESC`,
     )
     return rows

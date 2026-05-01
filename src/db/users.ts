@@ -131,7 +131,7 @@ export async function listUsers(): Promise<UserWithRole[]> {
   try {
     const db = await getDb()
     const users = await db.select<UserRow[]>(
-      `SELECT * FROM users WHERE deleted_at IS NULL ORDER BY username ASC`,
+      `SELECT * FROM users ORDER BY username ASC`,
     )
 
     // Get role information for each user
@@ -167,7 +167,7 @@ export async function getUser(id: number): Promise<UserWithRole | null> {
   try {
     const db = await getDb()
     const users = await db.select<UserRow[]>(
-      `SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL`,
+      `SELECT * FROM users WHERE id = $1`,
       [id],
     )
 

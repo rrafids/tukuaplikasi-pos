@@ -107,7 +107,7 @@ export async function listCategories(): Promise<CategoryRow[]> {
   try {
     const db = await getDb()
     const rows = await db.select<CategoryRow[]>(
-      `SELECT * FROM categories WHERE deleted_at IS NULL ORDER BY name ASC`,
+      `SELECT * FROM categories ORDER BY name ASC`,
     )
     return rows
   } catch (error) {
@@ -289,7 +289,7 @@ export async function listSubcategories(
 ): Promise<SubcategoryRow[]> {
   try {
     const db = await getDb()
-    let query = `SELECT * FROM subcategories WHERE deleted_at IS NULL`
+    let query = `SELECT * FROM subcategories WHERE 1=1`
     const params: unknown[] = []
     
     if (categoryId != null) {
@@ -495,7 +495,7 @@ export async function getProductSubcategories(
     const rows = await db.select<SubcategoryRow[]>(
       `SELECT s.* FROM subcategories s
        INNER JOIN product_subcategories ps ON s.id = ps.subcategory_id
-       WHERE ps.product_id = $1 AND s.deleted_at IS NULL
+       WHERE ps.product_id = $1
        ORDER BY s.name ASC`,
       [productId],
     )

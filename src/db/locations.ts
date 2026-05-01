@@ -88,7 +88,7 @@ export async function listLocations(): Promise<LocationRow[]> {
   try {
     const db = await getDb()
     const rows = await db.select<LocationRow[]>(
-      `SELECT * FROM locations WHERE deleted_at IS NULL ORDER BY type, name ASC`,
+      `SELECT * FROM locations ORDER BY type, name ASC`,
     )
     return rows
   } catch (error) {
@@ -289,7 +289,7 @@ export async function getProductLocationStocks(
         l.type as location_type
        FROM product_location_stocks pls
        INNER JOIN locations l ON pls.location_id = l.id
-       WHERE pls.product_id = $1 AND l.deleted_at IS NULL
+       WHERE pls.product_id = $1
        ORDER BY l.type, l.name ASC`,
       [productId],
     )
@@ -319,7 +319,6 @@ export async function getAllProductLocationStocks(): Promise<
        FROM product_location_stocks pls
        INNER JOIN products p ON pls.product_id = p.id
        INNER JOIN locations l ON pls.location_id = l.id
-       WHERE p.deleted_at IS NULL AND l.deleted_at IS NULL
        ORDER BY p.name, l.type, l.name ASC`,
     )
     return rows

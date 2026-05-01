@@ -83,7 +83,7 @@ export async function listUOMs(): Promise<UOMRow[]> {
   try {
     const db = await getDb()
     const rows = await db.select<UOMRow[]>(
-      `SELECT * FROM uoms WHERE deleted_at IS NULL ORDER BY name ASC`,
+      `SELECT * FROM uoms ORDER BY name ASC`,
     )
     return rows
   } catch (error) {

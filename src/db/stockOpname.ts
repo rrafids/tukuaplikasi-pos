@@ -112,7 +112,7 @@ export async function listStockOpnames(): Promise<StockOpnameWithItems[]> {
   try {
     const db = await getDb()
     const opnames = await db.select<StockOpnameRow[]>(
-      `SELECT * FROM stock_opnames WHERE deleted_at IS NULL ORDER BY opname_date DESC, created_at DESC`
+      `SELECT * FROM stock_opnames ORDER BY opname_date DESC, created_at DESC`
     )
 
     const result: StockOpnameWithItems[] = []
@@ -166,7 +166,7 @@ export async function getStockOpname(id: number): Promise<StockOpnameWithItems |
   try {
     const db = await getDb()
     const opnameRows = await db.select<StockOpnameRow[]>(
-      `SELECT * FROM stock_opnames WHERE id = $1 AND deleted_at IS NULL`,
+      `SELECT * FROM stock_opnames WHERE id = $1`,
       [id]
     )
 

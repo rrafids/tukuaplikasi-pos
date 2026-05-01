@@ -162,7 +162,7 @@ export async function listProcurements(): Promise<
        FROM procurements pr
        INNER JOIN products p ON pr.product_id = p.id
        INNER JOIN locations l ON pr.location_id = l.id
-       WHERE pr.deleted_at IS NULL AND p.deleted_at IS NULL AND l.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
        ORDER BY pr.created_at DESC`,
     )
     return rows

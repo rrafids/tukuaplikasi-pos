@@ -208,7 +208,7 @@ export async function listSales(): Promise<SaleWithItems[]> {
        FROM sales s
        INNER JOIN locations l ON s.location_id = l.id
        LEFT JOIN users u ON s.user_id = u.id
-       WHERE s.deleted_at IS NULL AND l.deleted_at IS NULL
+       WHERE l.deleted_at IS NULL
        ORDER BY s.created_at DESC`,
     )
 
@@ -236,7 +236,7 @@ export async function listSales(): Promise<SaleWithItems[]> {
            FROM sales_items si
            INNER JOIN products p ON si.product_id = p.id
            LEFT JOIN uoms uom ON si.uom_id = uom.id
-           WHERE si.sale_id = $1 AND p.deleted_at IS NULL
+           WHERE si.sale_id = $1
            ORDER BY si.id`,
           [sale.id],
         )
