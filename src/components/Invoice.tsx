@@ -249,7 +249,9 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               </div>
               <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.customer}</span>
-                <span className="font-semibold print:font-bold">{sale.customer_name || t.invoice.walkIn}</span>
+                <span className="font-bold print:font-bold" style={{ fontWeight: 700 }}>
+                  {sale.customer_name || t.invoice.walkIn}
+                </span>
               </div>
               <div className="flex flex-col text-sm print:text-[10pt]">
                 <span className="font-semibold print:font-bold">{t.invoice.cashier}</span>
