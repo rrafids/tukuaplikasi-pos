@@ -537,6 +537,7 @@ export async function updateSale(
       product_id: number
       quantity: number
       unit_price: number
+      uom_id?: number | null
     }>
     discount_type?: 'percentage' | 'fixed' | null
     discount_value?: number | null
@@ -566,6 +567,45 @@ export async function updateSale(
       [id],
     )
 
+    // Use new items or existing items
+    const items = input.items ?? existingItems.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      uom_id: item.uom_id ?? null,
+    }))
+
+    const locationId = input.location_id ?? existing.location_id
+
+    // Validate stock first (without mutating). For same-location edit, stock includes existing sale quantities.
+    const existingQtyByProduct = existingItems.reduce<Record<number, number>>((acc, item) => {
+      acc[item.product_id] = (acc[item.product_id] ?? 0) + item.quantity
+      return acc
+    }, {})
+    const requestedQtyByProduct = items.reduce<Record<number, number>>((acc, item) => {
+      acc[item.product_id] = (acc[item.product_id] ?? 0) + item.quantity
+      return acc
+    }, {})
+
+    for (const [productIdRaw, requestedQty] of Object.entries(requestedQtyByProduct)) {
+      const productId = Number(productIdRaw)
+      const stockRows = await db.select<Array<{ stock: number }>>(
+        `SELECT stock FROM product_location_stocks 
+         WHERE product_id = $1 AND location_id = $2`,
+        [productId, locationId],
+      )
+      const currentStock = stockRows[0]?.stock ?? 0
+      const restorableQty =
+        locationId === existing.location_id ? (existingQtyByProduct[productId] ?? 0) : 0
+      const effectiveAvailable = currentStock + restorableQty
+
+      if (effectiveAvailable < requestedQty) {
+        throw new Error(
+          `Insufficient stock for product. Available: ${effectiveAvailable}, Requested: ${requestedQty}`,
+        )
+      }
+    }
+
     // Restore stock from existing items
     for (const item of existingItems) {
       const stockRows = await db.select<Array<{ stock: number }>>(
@@ -585,33 +625,17 @@ export async function updateSale(
     // Delete existing items
     await db.execute(`DELETE FROM sales_items WHERE sale_id = $1`, [id])
 
-    // Use new items or existing items
-    const items = input.items ?? existingItems.map((item) => ({
-      product_id: item.product_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-    }))
-
-    const locationId = input.location_id ?? existing.location_id
-
-    // Validate and reduce stock for new items
-    for (const item of items) {
+    // Reduce stock for updated items by product total (prevents duplicate product double-read issues)
+    for (const [productIdRaw, requestedQty] of Object.entries(requestedQtyByProduct)) {
+      const productId = Number(productIdRaw)
       const stockRows = await db.select<Array<{ stock: number }>>(
         `SELECT stock FROM product_location_stocks 
          WHERE product_id = $1 AND location_id = $2`,
-        [item.product_id, locationId],
+        [productId, locationId],
       )
       const currentStock = stockRows[0]?.stock ?? 0
-
-      if (currentStock < item.quantity) {
-        throw new Error(
-          `Insufficient stock for product. Available: ${currentStock}, Requested: ${item.quantity}`,
-        )
-      }
-
-      // Reduce stock
-      const newStock = currentStock - item.quantity
-      await setProductLocationStock(item.product_id, locationId, newStock)
+      const newStock = currentStock - requestedQty
+      await setProductLocationStock(productId, locationId, newStock)
     }
 
     // Calculate subtotal
@@ -662,9 +686,9 @@ export async function updateSale(
     for (const item of items) {
       const subtotal = item.quantity * item.unit_price
       await db.execute(
-        `INSERT INTO sales_items (sale_id, product_id, quantity, unit_price, subtotal, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, item.product_id, item.quantity, item.unit_price, subtotal, now],
+        `INSERT INTO sales_items (sale_id, product_id, quantity, unit_price, subtotal, uom_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [id, item.product_id, item.quantity, item.unit_price, subtotal, item.uom_id ?? null, now],
       )
     }
 

@@ -235,27 +235,27 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 
-            {/* Invoice Details stack format */}
+            {/* Invoice Details left-right format */}
             <div className="mb-4 space-y-2 print:mb-2 print:space-y-1">
-              <div className="flex flex-col text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">{t.invoice.invoiceNo}</span>
-                <span className="print:font-medium">
+              <div className="flex items-start gap-3 text-sm print:text-[10pt]">
+                <span className="w-20 shrink-0 font-semibold print:w-20 print:font-bold">{t.invoice.invoiceNo}</span>
+                <span className="min-w-0 flex-1 text-right break-words print:font-medium">
                   {sale.invoice_number || `INV-${sale.id.toString().padStart(6, '0')}`}
                 </span>
               </div>
-              <div className="flex flex-col text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">{t.invoice.date}</span>
-                <span className="print:font-medium">{formatDate(sale.created_at)}</span>
+              <div className="flex items-start gap-3 text-sm print:text-[10pt]">
+                <span className="w-20 shrink-0 font-semibold print:w-20 print:font-bold">{t.invoice.date}</span>
+                <span className="min-w-0 flex-1 text-right break-words print:font-medium">{formatDate(sale.created_at)}</span>
               </div>
-              <div className="flex flex-col text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">{t.invoice.customer}</span>
-                <span className="font-bold print:font-bold" style={{ fontWeight: 700 }}>
+              <div className="flex items-start gap-3 text-sm print:text-[10pt]">
+                <span className="w-20 shrink-0 font-semibold print:w-20 print:font-bold">{t.invoice.customer}</span>
+                <span className="min-w-0 flex-1 text-right break-words font-bold print:font-bold" style={{ fontWeight: 700 }}>
                   {sale.customer_name || t.invoice.walkIn}
                 </span>
               </div>
-              <div className="flex flex-col text-sm print:text-[10pt]">
-                <span className="font-semibold print:font-bold">{t.invoice.cashier}</span>
-                <span className="print:font-medium">{sale.user_name || '-'}</span>
+              <div className="flex items-start gap-3 text-sm print:text-[10pt]">
+                <span className="w-20 shrink-0 font-semibold print:w-20 print:font-bold">{t.invoice.cashier}</span>
+                <span className="min-w-0 flex-1 text-right break-words print:font-medium">{sale.user_name || '-'}</span>
               </div>
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>

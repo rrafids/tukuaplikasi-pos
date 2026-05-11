@@ -83,6 +83,7 @@ export default function Sales() {
   })
 
   const [showSummary, setShowSummary] = useState(false)
+  const [editingReservedStocks, setEditingReservedStocks] = useState<Record<number, number>>({})
 
   // Search and filter state (for history view)
   const [searchQuery, setSearchQuery] = useState('')
@@ -192,7 +193,9 @@ export default function Sales() {
           ...prev,
           items: prev.items.map((item) => ({
             ...item,
-            available_stock: stocks[item.product_id] ?? 0,
+            available_stock:
+              (stocks[item.product_id] ?? 0) +
+              (editingReservedStocks[item.product_id] ?? 0),
           })),
         }))
       } catch (error) {
@@ -201,7 +204,7 @@ export default function Sales() {
     }
 
     void loadStocks()
-  }, [form.location_id, products])
+  }, [form.location_id, products, editingReservedStocks])
 
   const filteredSales = useMemo(() => {
     let filtered = sales.filter((s) => {
@@ -273,12 +276,19 @@ export default function Sales() {
 
   const openCreate = () => {
     setEditingId(null)
+    setEditingReservedStocks({})
     resetForm()
     setShowForm(true)
   }
 
   const openEdit = (sale: SaleWithItems) => {
+    const reservedByProduct = sale.items.reduce<Record<number, number>>((acc, item) => {
+      acc[item.product_id] = (acc[item.product_id] ?? 0) + item.quantity
+      return acc
+    }, {})
+
     setEditingId(sale.id)
+    setEditingReservedStocks(reservedByProduct)
     setForm({
       location_id: sale.location_id.toString(),
       customer_name: sale.customer_name ?? '',
@@ -290,7 +300,9 @@ export default function Sales() {
           quantity: item.quantity,
           unit_price: item.unit_price,
           subtotal: item.subtotal,
-          available_stock: productStocks[item.product_id] ?? 0,
+          available_stock:
+            (productStocks[item.product_id] ?? 0) +
+            (reservedByProduct[item.product_id] ?? 0),
           uom_id: item.uom_id,
           product_uom_id: product?.uom_id ?? null,
           converted_quantity: null,
@@ -307,6 +319,7 @@ export default function Sales() {
   const closeForm = () => {
     setShowForm(false)
     setEditingId(null)
+    setEditingReservedStocks({})
   }
 
 
@@ -357,7 +370,9 @@ export default function Sales() {
         item.product_id = productId
         item.product_name = product?.name ?? ''
         item.unit_price = product?.price ?? 0
-        item.available_stock = productStocks[productId] ?? 0
+        item.available_stock =
+          (productStocks[productId] ?? 0) +
+          (editingReservedStocks[productId] ?? 0)
         item.product_uom_id = product?.uom_id ?? null
         // Set UOM to product's UOM by default
         item.uom_id = product?.uom_id ?? null
@@ -448,9 +463,29 @@ export default function Sales() {
         return
       }
 
-      if (item.available_stock < item.quantity) {
+    }
+
+    // Validate stock by product total.
+    // In edit mode, we include quantities from the same sale as effectively available.
+    const requestedByProduct = form.items.reduce<
+      Record<number, { requested: number; name: string }>
+    >((acc, item) => {
+      if (!acc[item.product_id]) {
+        acc[item.product_id] = { requested: 0, name: item.product_name }
+      }
+      acc[item.product_id].requested += item.quantity
+      return acc
+    }, {})
+
+    for (const [productIdRaw, { requested, name }] of Object.entries(requestedByProduct)) {
+      const productId = Number(productIdRaw)
+      const available =
+        (productStocks[productId] ?? 0) +
+        (editingReservedStocks[productId] ?? 0)
+
+      if (requested > available) {
         toast.error(
-          `Insufficient stock for ${item.product_name}. Available: ${item.available_stock}`,
+          `Insufficient stock for ${name}. Available: ${available}, Requested: ${requested}`,
         )
         return
       }
