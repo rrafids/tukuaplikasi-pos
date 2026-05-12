@@ -298,7 +298,10 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
                                   )}
                                 </td>
                                 <td className="w-16 px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                                  {item.quantity} {item.uom_abbreviation || ''}
+                                  {item.quantity}
+                                  {item.uom_abbreviation ? (
+                                    <span className="print:hidden"> {item.uom_abbreviation}</span>
+                                  ) : null}
                                 </td>
                                 {printType === 'consumer' && (
                                   <td className="w-24 px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
