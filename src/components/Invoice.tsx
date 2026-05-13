@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, Fragment } from 'react'
 import type { SaleWithItems } from '../db/sales'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useSettings } from '../contexts/SettingsContext'
@@ -116,6 +116,28 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               border-collapse: collapse;
               font-size: 10pt;
               font-weight: 400;
+            }
+            .invoice-container .invoice-items-table {
+              table-layout: fixed;
+            }
+            .invoice-container .invoice-col-idx {
+              width: 5mm;
+              max-width: 6mm;
+              box-sizing: border-box;
+            }
+            .invoice-container .invoice-col-qty {
+              width: 8mm;
+              max-width: 10mm;
+              text-align: center !important;
+              padding-left: 0.5mm !important;
+              padding-right: 0.5mm !important;
+              box-sizing: border-box;
+            }
+            .invoice-container .invoice-col-total {
+              width: 22mm;
+              max-width: 24mm;
+              text-align: right !important;
+              box-sizing: border-box;
             }
             .invoice-container th {
               font-weight: 700;
@@ -260,60 +282,66 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               <div className="mt-2 border-t-2 border-slate-900 print:mt-1 print:border-t-2"></div>
             </div>
 
-            {/* Items Table */}
+            {/* Items table: single table so header columns align with row columns (nested table broke widths on 80mm print). */}
             <div className="mb-4 print:mb-2">
-              <table className="w-full">
+              <table className="invoice-items-table w-full table-fixed">
                 <thead>
                   <tr className="border-b-2 border-slate-900 print:border-b-2">
-                    <th className="px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold">#</th>
-                    <th className="px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.item}</th>
-                    <th className="px-1 py-1 text-center text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.qty}</th>
+                    <th className="invoice-col-idx w-6 px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                      #
+                    </th>
+                    <th className="invoice-col-item min-w-0 px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                      {t.invoice.item}
+                    </th>
+                    <th className="invoice-col-qty w-10 px-1 py-1 text-center text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                      {t.invoice.qty}
+                    </th>
                     {printType === 'consumer' && (
-                      <th className="px-1 py-1 text-right text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">{t.invoice.total}</th>
+                      <th className="invoice-col-total w-24 px-1 py-1 text-right text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                        {t.invoice.total}
+                      </th>
                     )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 print:divide-y-0">
                   {Object.entries(groupedItems).map(([groupName, items]) => (
-                    <tr key={groupName}>
-                      <td colSpan={printType === 'consumer' ? 4 : 3}>
-                        {printType !== 'consumer' && (
-                          <div className="mt-2 mb-1 bg-slate-900 px-2 py-0.5 text-[10pt] font-bold text-white print:mt-2">
-                            {groupName}
-                          </div>
-                        )}
-                        <table className="w-full">
-                          <tbody>
-                            {items.map((item, index) => (
-                              <tr key={item.id} className="border-b border-slate-900 print:border-b">
-                                <td className="w-6 px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
-                                  {index + 1}
-                                </td>
-                                <td className="px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
-                                  <div className="print:max-w-[45mm] print:font-semibold">{item.product_name}</div>
-                                  {printType === 'consumer' && (
-                                    <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
-                                      {item.quantity} × {formatCurrency(item.unit_price)}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="w-16 px-1 py-1 text-center text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                                  {item.quantity}
-                                  {item.uom_abbreviation ? (
-                                    <span className="print:hidden"> {item.uom_abbreviation}</span>
-                                  ) : null}
-                                </td>
-                                {printType === 'consumer' && (
-                                  <td className="w-24 px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
-                                    {formatCurrency(item.subtotal)}
-                                  </td>
-                                )}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </td>
-                    </tr>
+                    <Fragment key={groupName}>
+                      {printType !== 'consumer' && (
+                        <tr>
+                          <td colSpan={3} className="border-b-0 px-0 py-0 print:py-0">
+                            <div className="mt-2 mb-1 bg-slate-900 px-2 py-0.5 text-[10pt] font-bold text-white print:mt-2">
+                              {groupName}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                      {items.map((item, index) => (
+                        <tr key={item.id} className="border-b border-slate-900 print:border-b">
+                          <td className="invoice-col-idx w-6 px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
+                            {index + 1}
+                          </td>
+                          <td className="invoice-col-item min-w-0 px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
+                            <div className="print:font-semibold">{item.product_name}</div>
+                            {printType === 'consumer' && (
+                              <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
+                                {item.quantity} × {formatCurrency(item.unit_price)}
+                              </div>
+                            )}
+                          </td>
+                          <td className="invoice-col-qty w-10 px-1 py-1 text-center text-sm align-middle text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                            {item.quantity}
+                            {item.uom_abbreviation ? (
+                              <span className="print:hidden"> {item.uom_abbreviation}</span>
+                            ) : null}
+                          </td>
+                          {printType === 'consumer' && (
+                            <td className="invoice-col-total w-24 px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                              {formatCurrency(item.subtotal)}
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
