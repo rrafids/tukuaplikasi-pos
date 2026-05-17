@@ -417,9 +417,10 @@ export async function createSale(input: {
       ],
     )
 
-    // Get the created sale ID
+    // Fetch the sale we just inserted by its unique invoice number
     const saleRows = await db.select<SaleRow[]>(
-      `SELECT * FROM sales ORDER BY id DESC LIMIT 1`,
+      `SELECT * FROM sales WHERE invoice_number = $1`,
+      [invoiceNumber],
     )
     const sale = saleRows[0]
 

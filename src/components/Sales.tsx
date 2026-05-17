@@ -84,6 +84,7 @@ export default function Sales() {
 
   const [showSummary, setShowSummary] = useState(false)
   const [editingReservedStocks, setEditingReservedStocks] = useState<Record<number, number>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Search and filter state (for history view)
   const [searchQuery, setSearchQuery] = useState('')
@@ -441,6 +442,8 @@ export default function Sales() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (isSubmitting) return
+
     if (!form.location_id) {
       toast.error('Please select a location')
       return
@@ -462,7 +465,6 @@ export default function Sales() {
         toast.error('Quantity must be greater than 0')
         return
       }
-
     }
 
     // Validate stock by product total.
@@ -491,6 +493,7 @@ export default function Sales() {
       }
     }
 
+    setIsSubmitting(true)
     try {
       if (editingId == null) {
         const createdSale = await createSale({
@@ -502,6 +505,7 @@ export default function Sales() {
             unit_price: item.unit_price,
             uom_id: item.uom_id,
           })),
+          discount_type: form.discount_type || null,
           discount_value: form.discount_value ? parseFloat(form.discount_value) : null,
           notes: form.notes.trim() || null,
           user_id: user?.id ?? null,
@@ -535,14 +539,15 @@ export default function Sales() {
         } else {
           toast.error(t.sales.updated.replace('successfully', 'failed').replace('berhasil', 'gagal'))
         }
+        closeForm()
       }
-
-      closeForm()
     } catch (error) {
       console.error('[Sales] Error saving sale:', error)
       const errorMessage =
         error instanceof Error ? error.message : String(error)
       toast.error(`Failed to save sale: ${errorMessage}`)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -1644,9 +1649,12 @@ export default function Sales() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700"
+                    disabled={isSubmitting}
+                    className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {editingId == null ? t.sales.createSale : t.sales.updateSale}
+                    {isSubmitting
+                      ? (editingId == null ? t.sales.createSale : t.sales.updateSale) + '...'
+                      : (editingId == null ? t.sales.createSale : t.sales.updateSale)}
                   </button>
                 </div>
               </div>
