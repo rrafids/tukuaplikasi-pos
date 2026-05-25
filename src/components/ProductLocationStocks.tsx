@@ -588,7 +588,7 @@ export default function ProductLocationStocks() {
       }
       const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      const headers = ['Product ID', 'Product Name', 'Location ID', 'Location Name', 'Location Type', 'Stock Quantity', 'UOM']
+      const headers = ['Product Name', 'Location Name', 'Location Type', 'Stock Quantity', 'UOM']
 
       const aoaData: any[][] = [
         [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
@@ -605,9 +605,7 @@ export default function ProductLocationStocks() {
             unit = uoms.find((u) => u.id === selectedUOMFilter)?.abbreviation || unit
           }
           return [
-            { v: stock.product_id, s: BODY_STYLE },
             { v: stock.product_name, s: BODY_STYLE },
-            { v: stock.location_id, s: BODY_STYLE },
             { v: stock.location_name, s: BODY_STYLE },
             { v: stock.location_type, s: BODY_STYLE },
             { v: stockVal, s: BODY_STYLE },
@@ -617,7 +615,7 @@ export default function ProductLocationStocks() {
       ]
 
       const ws = XLSX.utils.aoa_to_sheet(aoaData)
-      ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 12 }, { wch: 20 }, { wch: 14 }, { wch: 16 }, { wch: 8 }]
+      ws['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 14 }, { wch: 16 }, { wch: 8 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Location Stocks')
 

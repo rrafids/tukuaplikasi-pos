@@ -88,7 +88,7 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               margin: 0 !important;
               width: 80mm;
               max-width: 80mm;
-              padding: 2mm 3mm;
+              padding: 2mm 2mm 2mm 0.5mm;
               font-family: 'Arial', 'Helvetica', sans-serif;
               font-size: 11pt;
               line-height: 1.4;
@@ -121,21 +121,24 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               table-layout: fixed;
             }
             .invoice-container .invoice-col-idx {
-              width: 5mm;
-              max-width: 6mm;
+              width: 4mm;
+              max-width: 4mm;
               box-sizing: border-box;
             }
+            .invoice-container .invoice-col-item {
+              width: auto;
+            }
             .invoice-container .invoice-col-qty {
-              width: 8mm;
-              max-width: 10mm;
+              width: 7mm;
+              max-width: 8mm;
               text-align: center !important;
-              padding-left: 0.5mm !important;
-              padding-right: 0.5mm !important;
+              padding-left: 0.25mm !important;
+              padding-right: 0.25mm !important;
               box-sizing: border-box;
             }
             .invoice-container .invoice-col-total {
-              width: 22mm;
-              max-width: 24mm;
+              width: 21mm;
+              max-width: 22mm;
               text-align: right !important;
               box-sizing: border-box;
             }
@@ -148,8 +151,16 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
             }
             .invoice-container th,
             .invoice-container td {
-              padding: 1.5mm 1mm;
+              padding: 1.5mm 0.5mm;
               border-bottom: 1px solid #000;
+            }
+            .invoice-container th:first-child,
+            .invoice-container td:first-child {
+              padding-left: 0 !important;
+            }
+            .invoice-container th:last-child,
+            .invoice-container td:last-child {
+              padding-right: 0 !important;
             }
             .invoice-container .text-center {
               text-align: center;
@@ -236,7 +247,7 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
           </div>
 
           {/* Invoice Content */}
-          <div className="flex-1 overflow-y-auto p-6 print:p-2 print:overflow-visible">
+          <div className="flex-1 overflow-y-auto p-6 print:px-0 print:py-2 print:overflow-visible">
             {/* Company Header */}
             <div className="mb-4 text-center print:mb-2">
               <h1 className="text-2xl font-bold text-slate-900 print:text-[13pt] print:font-bold print:leading-tight">
@@ -295,17 +306,17 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
               <table className="invoice-items-table w-full table-fixed">
                 <thead>
                   <tr className="border-b-2 border-slate-900 print:border-b-2">
-                    <th className="invoice-col-idx w-6 px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                    <th className="invoice-col-idx w-5 px-0.5 py-1 text-left text-sm print:w-[4mm] print:px-0 print:py-1 print:text-[9pt] print:font-bold">
                       #
                     </th>
-                    <th className="invoice-col-item min-w-0 px-1 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                    <th className="invoice-col-item min-w-0 px-0.5 py-1 text-left text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
                       {t.invoice.item}
                     </th>
-                    <th className="invoice-col-qty w-10 px-1 py-1 text-center text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                    <th className="invoice-col-qty w-9 px-0.5 py-1 text-center text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
                       {t.invoice.qty}
                     </th>
                     {printType === 'consumer' && (
-                      <th className="invoice-col-total w-24 px-1 py-1 text-right text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
+                      <th className="invoice-col-total w-20 px-0.5 py-1 text-right text-sm print:px-0 print:py-1 print:text-[9pt] print:font-bold uppercase">
                         {t.invoice.total}
                       </th>
                     )}
@@ -325,10 +336,10 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
                       )}
                       {items.map((item, index) => (
                         <tr key={item.id} className="border-b border-slate-900 print:border-b">
-                          <td className="invoice-col-idx w-6 px-1 py-1 text-sm text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-medium">
+                          <td className="invoice-col-idx w-5 px-0.5 py-1 text-sm text-slate-900 print:w-[4mm] print:px-0 print:py-1 print:text-[9pt] print:font-medium">
                             {index + 1}
                           </td>
-                          <td className="invoice-col-item min-w-0 px-1 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
+                          <td className="invoice-col-item min-w-0 px-0.5 py-1 text-sm font-medium text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-semibold print:break-words">
                             <div className="print:font-semibold">{item.product_name}</div>
                             {printType === 'consumer' && (
                               <div className="text-xs text-slate-600 print:text-[8pt] print:font-normal">
@@ -336,14 +347,14 @@ export default function Invoice({ sale, onClose, initialPrintType = 'consumer' }
                               </div>
                             )}
                           </td>
-                          <td className="invoice-col-qty w-10 px-1 py-1 text-center text-sm align-middle text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                          <td className="invoice-col-qty w-9 px-0.5 py-1 text-center text-sm align-middle text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
                             {item.quantity}
                             {item.uom_abbreviation ? (
                               <span className="print:hidden"> {item.uom_abbreviation}</span>
                             ) : null}
                           </td>
                           {printType === 'consumer' && (
-                            <td className="invoice-col-total w-24 px-1 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
+                            <td className="invoice-col-total w-20 px-0.5 py-1 text-right text-sm font-semibold text-slate-900 print:px-0 print:py-1 print:text-[9pt] print:font-bold">
                               {formatCurrency(item.subtotal)}
                             </td>
                           )}

@@ -421,7 +421,7 @@ export default function StockOpname() {
       }
       const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      const headers = ['Opname ID', 'Date', 'Location', 'Status', 'Product', 'System Stock', 'Actual Stock', 'Difference', 'Notes']
+      const headers = ['Date', 'Location', 'Status', 'Product', 'System Stock', 'Actual Stock', 'Difference', 'Notes']
 
       const aoaData: any[][] = [
         [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
@@ -436,7 +436,6 @@ export default function StockOpname() {
       filteredOpnames.forEach((opname) => {
         if (opname.items.length === 0) {
           aoaData.push([
-            { v: opname.id, s: BODY_STYLE },
             { v: new Date(opname.opname_date).toLocaleString('id-ID', dateOpts), s: BODY_STYLE },
             { v: opname.location_name, s: BODY_STYLE },
             { v: opname.status.charAt(0).toUpperCase() + opname.status.slice(1), s: BODY_STYLE },
@@ -449,7 +448,6 @@ export default function StockOpname() {
         } else {
           opname.items.forEach((item, index) => {
             aoaData.push([
-              { v: index === 0 ? opname.id : '', s: BODY_STYLE },
               { v: index === 0 ? new Date(opname.opname_date).toLocaleString('id-ID', dateOpts) : '', s: BODY_STYLE },
               { v: index === 0 ? opname.location_name : '', s: BODY_STYLE },
               { v: index === 0 ? opname.status.charAt(0).toUpperCase() + opname.status.slice(1) : '', s: BODY_STYLE },
@@ -464,7 +462,7 @@ export default function StockOpname() {
       })
 
       const ws = XLSX.utils.aoa_to_sheet(aoaData)
-      ws['!cols'] = [{ wch: 10 }, { wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 25 }]
+      ws['!cols'] = [{ wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 25 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 25 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Stock Opname')
 

@@ -233,7 +233,7 @@ export default function AuditTrail() {
       }
       const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      const headers = ['ID', 'Date', 'Time', 'Entity Type', 'Entity ID', 'Entity Name', 'Action', 'Old Values', 'New Values', 'Notes', 'Created At']
+      const headers = ['Date', 'Time', 'Entity Type', 'Entity Name', 'Action', 'Old Values', 'New Values', 'Notes', 'Created At']
 
       const aoaData: any[][] = [
         [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
@@ -249,11 +249,9 @@ export default function AuditTrail() {
             if (entry.new_values) newValues = JSON.stringify(JSON.parse(entry.new_values), null, 2)
           } catch { oldValues = entry.old_values || '-'; newValues = entry.new_values || '-' }
           return [
-            { v: entry.id, s: BODY_STYLE },
             { v: new Date(entry.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
             { v: new Date(entry.created_at).toLocaleTimeString('id-ID'), s: BODY_STYLE },
             { v: entry.entity_type, s: BODY_STYLE },
-            { v: entry.entity_id, s: BODY_STYLE },
             { v: entry.entity_name || '-', s: BODY_STYLE },
             { v: entry.action.charAt(0).toUpperCase() + entry.action.slice(1), s: BODY_STYLE },
             { v: oldValues, s: BODY_STYLE },
@@ -265,7 +263,7 @@ export default function AuditTrail() {
       ]
 
       const ws = XLSX.utils.aoa_to_sheet(aoaData)
-      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 20 }]
+      ws['!cols'] = [{ wch: 14 }, { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 20 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Audit Trail')
 

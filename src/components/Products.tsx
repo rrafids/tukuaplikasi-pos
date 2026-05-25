@@ -710,7 +710,6 @@ export default function Products() {
         const totalStock = productLocationStocksMap[product.id]?.reduce((sum, stock) => sum + stock.stock, 0) || 0
 
         return {
-          'ID': product.id,
           'Name': product.name,
           'Selling Price': product.price,
           'Buy Price': product.buy_price || 0,

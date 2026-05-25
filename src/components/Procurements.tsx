@@ -484,7 +484,7 @@ export default function Procurements() {
       }
       const BODY_STYLE = { border: { top: { style: 'thin', color: { rgb: 'E2E8F0' } }, bottom: { style: 'thin', color: { rgb: 'E2E8F0' } }, left: { style: 'thin', color: { rgb: 'E2E8F0' } }, right: { style: 'thin', color: { rgb: 'E2E8F0' } } } }
 
-      const headers = ['ID', 'Date', 'Product', 'Location', 'Location Type', 'Quantity', 'Unit Price', 'Total', 'Supplier', 'Status', 'Payment', 'Notes']
+      const headers = ['Date', 'Product', 'Location', 'Location Type', 'Quantity', 'Unit Price', 'Total', 'Supplier', 'Status', 'Payment', 'Notes']
 
       const aoaData: any[][] = [
         [{ v: appName, s: { font: { bold: true, sz: 18 } } }],
@@ -495,7 +495,6 @@ export default function Procurements() {
         ...filteredProcurements.map(p => {
           const total = (p.unit_price ?? 0) * p.quantity
           return [
-            { v: p.id, s: BODY_STYLE },
             { v: new Date(p.created_at).toLocaleDateString('id-ID'), s: BODY_STYLE },
             { v: p.product_name, s: BODY_STYLE },
             { v: p.location_name, s: BODY_STYLE },
@@ -512,7 +511,7 @@ export default function Procurements() {
       ]
 
       const ws = XLSX.utils.aoa_to_sheet(aoaData)
-      ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }]
+      ws['!cols'] = [{ wch: 14 }, { wch: 25 }, { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 12 }, { wch: 25 }]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Procurements')
 
