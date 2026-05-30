@@ -301,20 +301,28 @@ export async function createSale(input: {
     // Calculate final total
     const totalAmount = subtotal - discountAmount
 
-    // Validate ALL conversions and stock availability FIRST (before any database changes)
-    const itemConversions: Array<{ itemIndex: number; quantityInBaseUOM: number }> = []
+    // Validate conversions and stock before any writes; cache values for later steps.
+    const itemConversions: Array<{
+      itemIndex: number
+      quantityInBaseUOM: number
+      productUomId: number | null
+    }> = []
+    const productUomCache = new Map<number, number | null>()
+    const remainingStockByProduct = new Map<number, number>()
 
     for (let i = 0; i < input.items.length; i++) {
       const item = input.items[i]
 
-      // Get product's base UOM
-      const productRows = await db.select<Array<{ uom_id: number | null }>>(
-        `SELECT uom_id FROM products WHERE id = $1`,
-        [item.product_id],
-      )
-      const productUomId = productRows[0]?.uom_id ?? null
+      let productUomId = productUomCache.get(item.product_id)
+      if (productUomId === undefined) {
+        const productRows = await db.select<Array<{ uom_id: number | null }>>(
+          `SELECT uom_id FROM products WHERE id = $1`,
+          [item.product_id],
+        )
+        productUomId = productRows[0]?.uom_id ?? null
+        productUomCache.set(item.product_id, productUomId)
+      }
 
-      // Convert quantity to base UOM if different UOM is used
       let quantityInBaseUOM = item.quantity
       if (item.uom_id && productUomId && item.uom_id !== productUomId) {
         const converted = await convertUOMQuantity(
@@ -329,25 +337,35 @@ export async function createSale(input: {
         }
         quantityInBaseUOM = converted
       } else if (item.uom_id && !productUomId) {
-        // Product has no UOM, but item has UOM - use item quantity as-is
         quantityInBaseUOM = item.quantity
       }
 
-      // Validate stock availability
-      const stockRows = await db.select<Array<{ stock: number }>>(
-        `SELECT stock FROM product_location_stocks 
-         WHERE product_id = $1 AND location_id = $2`,
-        [item.product_id, input.location_id],
-      )
-      const currentStock = stockRows[0]?.stock ?? 0
+      if (!remainingStockByProduct.has(item.product_id)) {
+        const stockRows = await db.select<Array<{ stock: number }>>(
+          `SELECT stock FROM product_location_stocks 
+           WHERE product_id = $1 AND location_id = $2`,
+          [item.product_id, input.location_id],
+        )
+        remainingStockByProduct.set(item.product_id, stockRows[0]?.stock ?? 0)
+      }
 
-      if (currentStock < quantityInBaseUOM) {
+      const remainingStock = remainingStockByProduct.get(item.product_id) ?? 0
+      if (remainingStock < quantityInBaseUOM) {
         throw new Error(
-          `Insufficient stock for product in item ${i + 1}. Available: ${currentStock}, Requested: ${quantityInBaseUOM}`,
+          `Insufficient stock for product in item ${i + 1}. Available: ${remainingStock}, Requested: ${quantityInBaseUOM}`,
         )
       }
 
-      itemConversions.push({ itemIndex: i, quantityInBaseUOM })
+      remainingStockByProduct.set(
+        item.product_id,
+        remainingStock - quantityInBaseUOM,
+      )
+
+      itemConversions.push({
+        itemIndex: i,
+        quantityInBaseUOM,
+        productUomId,
+      })
     }
 
     // Generate invoice number
@@ -380,21 +398,12 @@ export async function createSale(input: {
       invoiceNumber = `INV-${year}${month}-0001`
     }
 
-    // Now reduce stock (after all validations passed)
-    for (const conversion of itemConversions) {
-      const item = input.items[conversion.itemIndex]
-      const stockRows = await db.select<Array<{ stock: number }>>(
-        `SELECT stock FROM product_location_stocks 
-         WHERE product_id = $1 AND location_id = $2`,
-        [item.product_id, input.location_id],
-      )
-      const currentStock = stockRows[0]?.stock ?? 0
-      const newStock = currentStock - conversion.quantityInBaseUOM
-
+    for (const [productId, stock] of remainingStockByProduct) {
       await setProductLocationStock(
-        item.product_id,
+        productId,
         input.location_id,
-        newStock,
+        stock,
+        { skipProductVerify: true },
       )
     }
 
@@ -496,24 +505,22 @@ export async function createSale(input: {
       [sale.id],
     )
 
-    // Record stock movements for each item (using base UOM quantity from pre-calculated conversions)
     for (const conversion of itemConversions) {
       const item = input.items[conversion.itemIndex]
-      const productRows = await db.select<Array<{ uom_id: number | null }>>(
-        `SELECT uom_id FROM products WHERE id = $1`,
-        [item.product_id],
-      )
-      const productUomId = productRows[0]?.uom_id ?? null
+      const { productUomId } = conversion
 
-      await recordStockMovement({
-        product_id: item.product_id,
-        location_id: input.location_id,
-        movement_type: 'sale',
-        quantity: -conversion.quantityInBaseUOM, // Negative for decrease
-        reference_id: sale.id,
-        reference_type: 'sale',
-        notes: `Sale: ${item.quantity} units${item.uom_id && productUomId && item.uom_id !== productUomId ? ` (${conversion.quantityInBaseUOM} in base UOM)` : ''}`,
-      })
+      await recordStockMovement(
+        {
+          product_id: item.product_id,
+          location_id: input.location_id,
+          movement_type: 'sale',
+          quantity: -conversion.quantityInBaseUOM,
+          reference_id: sale.id,
+          reference_type: 'sale',
+          notes: `Sale: ${item.quantity} units${item.uom_id && productUomId && item.uom_id !== productUomId ? ` (${conversion.quantityInBaseUOM} in base UOM)` : ''}`,
+        },
+        { skipReturn: true },
+      )
     }
 
     return {

@@ -325,8 +325,11 @@ export const en = {
     paymentMethod: 'Payment Method',
     cash: 'Cash / Tunai',
     utang: 'Utang / Credit',
-    createSale: 'Create Sale',
+    createSale: 'Save Sale',
     updateSale: 'Update Sale',
+    saving: 'Saving...',
+    savingPleaseWait: 'Saving sale, please wait. Do not click again.',
+    savingInProgress: 'Sale is being saved. Please wait.',
   },
   // Procurements
   procurements: {

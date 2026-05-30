@@ -110,7 +110,7 @@ export async function recordStockMovement(input: {
   reference_id?: number | null
   reference_type?: string | null
   notes?: string | null
-}): Promise<StockMovementRow> {
+}, options?: { skipReturn?: boolean }): Promise<StockMovementRow | void> {
   try {
     const db = await getDb()
     const now = new Date().toISOString()
@@ -131,6 +131,10 @@ export async function recordStockMovement(input: {
         now,
       ],
     )
+
+    if (options?.skipReturn) {
+      return
+    }
 
     const rows = await db.select<StockMovementRow[]>(
       `SELECT * FROM stock_movements ORDER BY id DESC LIMIT 1`,

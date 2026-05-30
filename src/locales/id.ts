@@ -325,8 +325,11 @@ export const id = {
     paymentMethod: 'Metode Pembayaran',
     cash: 'Cash / Tunai',
     utang: 'Utang / Kredit',
-    createSale: 'Tambah Penjualan',
+    createSale: 'Simpan Penjualan',
     updateSale: 'Update Penjualan',
+    saving: 'Menyimpan...',
+    savingPleaseWait: 'Menyimpan penjualan, mohon tunggu.',
+    savingInProgress: 'Penjualan sedang disimpan. Mohon tunggu.',
   },
   // Procurements
   procurements: {

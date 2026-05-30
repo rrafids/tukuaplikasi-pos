@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ArrowDownTrayIcon,
   ChevronDownIcon,
@@ -85,6 +85,7 @@ export default function Sales() {
   const [showSummary, setShowSummary] = useState(false)
   const [editingReservedStocks, setEditingReservedStocks] = useState<Record<number, number>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const submitInFlightRef = useRef(false)
 
   // Search and filter state (for history view)
   const [searchQuery, setSearchQuery] = useState('')
@@ -276,6 +277,7 @@ export default function Sales() {
     })
 
   const openCreate = () => {
+    if (submitInFlightRef.current) return
     setEditingId(null)
     setEditingReservedStocks({})
     resetForm()
@@ -318,6 +320,7 @@ export default function Sales() {
   }
 
   const closeForm = () => {
+    if (submitInFlightRef.current) return
     setShowForm(false)
     setEditingId(null)
     setEditingReservedStocks({})
@@ -442,7 +445,10 @@ export default function Sales() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (isSubmitting) return
+    if (submitInFlightRef.current || isSubmitting) {
+      toast.info(t.sales.savingInProgress)
+      return
+    }
 
     if (!form.location_id) {
       toast.error('Please select a location')
@@ -493,6 +499,7 @@ export default function Sales() {
       }
     }
 
+    submitInFlightRef.current = true
     setIsSubmitting(true)
     try {
       if (editingId == null) {
@@ -511,11 +518,11 @@ export default function Sales() {
           user_id: user?.id ?? null,
           payment_method: form.payment_method,
         })
-        const updatedList = await listSales()
-        setSales(updatedList)
+        setSales((prev) => [createdSale, ...prev])
         toast.success(t.sales.created)
-        closeForm()
-        // Show print selection modal instead of immediate invoice
+        setShowForm(false)
+        setEditingId(null)
+        setEditingReservedStocks({})
         setSelectingPrintSale(createdSale)
       } else {
         const updated = await updateSale(editingId, {
@@ -533,13 +540,16 @@ export default function Sales() {
           payment_method: form.payment_method,
         })
         if (updated) {
-          const updatedList = await listSales()
-          setSales(updatedList)
+          setSales((prev) =>
+            prev.map((sale) => (sale.id === updated.id ? updated : sale)),
+          )
           toast.success(t.sales.updated)
         } else {
           toast.error(t.sales.updated.replace('successfully', 'failed').replace('berhasil', 'gagal'))
         }
-        closeForm()
+        setShowForm(false)
+        setEditingId(null)
+        setEditingReservedStocks({})
       }
     } catch (error) {
       console.error('[Sales] Error saving sale:', error)
@@ -547,6 +557,7 @@ export default function Sales() {
         error instanceof Error ? error.message : String(error)
       toast.error(`Failed to save sale: ${errorMessage}`)
     } finally {
+      submitInFlightRef.current = false
       setIsSubmitting(false)
     }
   }
@@ -829,7 +840,8 @@ export default function Sales() {
           <button
             type="button"
             onClick={openCreate}
-            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 md:px-4 md:py-2 md:text-sm"
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-1 rounded-md bg-primary-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60 md:px-4 md:py-2 md:text-sm"
           >
             <PlusIcon className="h-4 w-4" />
             <span>{t.sales.addSale}</span>
@@ -1312,7 +1324,19 @@ export default function Sales() {
       {/* Slide-over form */}
       {showForm && (
         <div className="fixed inset-0 z-20 flex items-center justify-end bg-black/20">
-          <div className="h-full w-full max-w-2xl border-l border-slate-200 bg-white shadow-2xl">
+          <div className="relative h-full w-full max-w-2xl border-l border-slate-200 bg-white shadow-2xl">
+            {isSubmitting && (
+              <div
+                className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/80 backdrop-blur-[1px]"
+                aria-live="polite"
+                aria-busy="true"
+              >
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+                <p className="max-w-xs px-6 text-center text-sm font-medium text-slate-700">
+                  {t.sales.savingPleaseWait}
+                </p>
+              </div>
+            )}
             <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
               <h2 className="text-sm font-semibold text-slate-900">
                 {editingId == null ? t.sales.addSale : t.sales.editSale}
@@ -1320,7 +1344,8 @@ export default function Sales() {
               <button
                 type="button"
                 onClick={closeForm}
-                className="rounded p-1 text-slate-400 hover:text-slate-600"
+                disabled={isSubmitting}
+                className="rounded p-1 text-slate-400 hover:text-slate-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
@@ -1643,7 +1668,8 @@ export default function Sales() {
                   <button
                     type="button"
                     onClick={closeForm}
-                    className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    disabled={isSubmitting}
+                    className="flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {t.common.cancel}
                   </button>
@@ -1653,8 +1679,10 @@ export default function Sales() {
                     className="flex-1 rounded-md bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isSubmitting
-                      ? (editingId == null ? t.sales.createSale : t.sales.updateSale) + '...'
-                      : (editingId == null ? t.sales.createSale : t.sales.updateSale)}
+                      ? t.sales.saving
+                      : editingId == null
+                        ? t.sales.createSale
+                        : t.sales.updateSale}
                   </button>
                 </div>
               </div>

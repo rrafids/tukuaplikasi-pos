@@ -332,26 +332,26 @@ export async function setProductLocationStock(
   productId: number,
   locationId: number,
   stock: number,
+  options?: { skipProductVerify?: boolean },
 ): Promise<void> {
   try {
     const db = await getDb()
-    
-    // Verify product exists
-    const productRows = await db.select<Array<{ id: number }>>(
-      `SELECT id FROM products WHERE id = $1`,
-      [productId],
-    )
-    
-    if (productRows.length === 0) {
-      throw new Error('Product not found')
+
+    if (!options?.skipProductVerify) {
+      const productRows = await db.select<Array<{ id: number }>>(
+        `SELECT id FROM products WHERE id = $1`,
+        [productId],
+      )
+
+      if (productRows.length === 0) {
+        throw new Error('Product not found')
+      }
     }
-    
-    // Validate stock is not negative
+
     if (stock < 0) {
       throw new Error('Stock cannot be negative')
     }
-    
-    // Use INSERT OR REPLACE to handle both insert and update
+
     await db.execute(
       `INSERT OR REPLACE INTO product_location_stocks (product_id, location_id, stock)
        VALUES ($1, $2, $3)`,
