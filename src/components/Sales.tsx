@@ -707,8 +707,8 @@ export default function Sales() {
 
       // Header row for transactions
       const detailsHeader = [
-        'Date', 'Location', 'Customer', 'Location Type', 'Product', 'Quantity',
-        'Sell Price', 'Final Price', 'Subtotal', 'Discount', 'Discount Amount',
+        'Date', 'Customer', 'Product', 'Quantity',
+        'Sell Price', 'Subtotal', 'Discount', 'Discount Amount',
         'Total Amount', 'Payment Method', 'Notes'
       ].map(text => ({ v: text, s: headerStyle }))
       aoaData.push(detailsHeader)
@@ -731,13 +731,10 @@ export default function Sales() {
         if (sale.items.length === 0) {
           aoaData.push([
             { v: new Date(sale.created_at).toLocaleDateString('id-ID'), s: bodyStyle },
-            { v: sale.location_name, s: bodyStyle },
             { v: sale.customer_name || '-', s: bodyStyle },
-            { v: sale.location_type, s: bodyStyle },
             { v: '-', s: bodyStyle }, // Product
             { v: '-', s: bodyStyle }, // Quantity
             { v: '-', s: bodyStyle }, // Sell Price
-            { v: '-', s: bodyStyle }, // Final Price
             { v: `Rp ${subtotal.toLocaleString('id-ID')}`, s: bodyStyle }, // Subtotal
             { v: discountDisplay, s: bodyStyle },
             { v: discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-', s: bodyStyle },
@@ -747,17 +744,12 @@ export default function Sales() {
           ])
         } else {
           sale.items.forEach((item, index) => {
-            const itemDiscount = discountAmount * (item.subtotal / Math.max(subtotal, 1));
-            const finalPrice = (item.subtotal - itemDiscount) / item.quantity;
             aoaData.push([
               { v: index === 0 ? new Date(sale.created_at).toLocaleDateString('id-ID') : '', s: bodyStyle },
-              { v: index === 0 ? sale.location_name : '', s: bodyStyle },
               { v: index === 0 ? (sale.customer_name || '-') : '', s: bodyStyle },
-              { v: index === 0 ? sale.location_type : '', s: bodyStyle },
               { v: item.product_name, s: bodyStyle },
               { v: item.quantity, s: bodyStyle },
               { v: item.unit_price, s: bodyStyle },
-              { v: finalPrice, s: bodyStyle },
               { v: `Rp ${item.subtotal.toLocaleString('id-ID')}`, s: bodyStyle },
               { v: index === 0 ? discountDisplay : '', s: bodyStyle },
               { v: index === 0 ? (discountAmount > 0 ? `Rp ${discountAmount.toLocaleString('id-ID')}` : '-') : '', s: bodyStyle },
@@ -774,12 +766,9 @@ export default function Sales() {
       // Set column widths for better readability
       ws['!cols'] = [
         { wch: 15 }, // Date
-        { wch: 15 }, // Location
         { wch: 20 }, // Customer
-        { wch: 15 }, // Location Type
         { wch: 25 }, // Product
         { wch: 10 }, // Quantity
-        { wch: 15 }, // Buy Price
         { wch: 15 }, // Sell Price
         { wch: 15 }, // Subtotal
         { wch: 10 }, // Discount
